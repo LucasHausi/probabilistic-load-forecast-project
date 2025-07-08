@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "probabilistic_load_forecast"
+version = "0.0.1"
+classifiers = [
+    "Private :: Do Not Upload"
+]
+
+[project.scripts]
+plf = "probabilistic_load_forecast.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
