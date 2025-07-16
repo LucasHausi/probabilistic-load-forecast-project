@@ -1,0 +1,14 @@
+services:
+  influxdb:
+    image: influxdb:3-core
+    ports: 
+      - "8181:8181"
+    command: >
+      influxdb3 serve
+      --object-store=file
+      --data-dir=/var/lib/influxdb3/data
+      --node-id=my-local-node
+    volumes:
+      - influxdb-data:/var/lib/influxdb3
+volumes:
+  influxdb-data:
