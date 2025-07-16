@@ -420,7 +420,7 @@ SAMPLE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 </GL_MarketDocument>"""
 
 def test_parse_xml_load_data():
-    result = XML_Load_Mapper.parse_xml_load_data(SAMPLE_XML)
+    result = XML_Load_Mapper.map(SAMPLE_XML)
     assert isinstance(result, list)
     assert result[0] == LoadData(timestamp="2025-07-13T00:00:00+00:00", value=4544)
     assert result[1] == LoadData(timestamp="2025-07-13T00:15:00+00:00", value=4529)

@@ -5,7 +5,7 @@ from probabilistic_load_forecast.domain.entities import LoadData
 
 class XML_Load_Mapper:
     @staticmethod
-    def parse_xml_load_data(xml: str) -> List[LoadData]:
+    def map(xml: str) -> List[LoadData]:
         ns = {'ns': 'urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0'}
         tree = etree.fromstring(xml.encode())
         # Find Period
