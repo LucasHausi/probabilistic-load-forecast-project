@@ -1,14 +1,13 @@
 services:
-  influxdb:
-    image: influxdb:3-core
-    ports: 
-      - "8181:8181"
-    command: >
-      influxdb3 serve
-      --object-store=file
-      --data-dir=/var/lib/influxdb3/data
-      --node-id=my-local-node
+  db:
+    image: postgres:17.6
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
     volumes:
-      - influxdb-data:/var/lib/influxdb3
+      - plf_data:/var/lib/postgresql/data
+
 volumes:
-  influxdb-data:
+  plf_data:
