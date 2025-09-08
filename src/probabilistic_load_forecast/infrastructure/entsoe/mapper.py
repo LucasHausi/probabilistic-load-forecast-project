@@ -7,7 +7,7 @@ class XmlLoadMapper:
     @staticmethod
     def map(xml: str) -> List[Measurement]:
         ns = {'ns': 'urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0'}
-        tree = etree.fromstring(xml.encode())
+        tree = etree.fromstring(xml.encode()) # pylint: disable=c-extension-no-member
         # Find Period
         period = tree.find('.//ns:Period', namespaces=ns)
         start_str = period.find('.//ns:start', namespaces=ns).text

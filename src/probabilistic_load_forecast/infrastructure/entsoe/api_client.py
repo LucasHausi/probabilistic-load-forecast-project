@@ -26,3 +26,4 @@ class EntsoeAPIClient():
             return response.text
         except requests.exceptions.RequestException as e:
             logging.warning("An error occured while fetching the load data: %s", e)
+            return None
