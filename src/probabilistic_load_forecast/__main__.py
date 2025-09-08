@@ -6,7 +6,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from probabilistic_load_forecast.infrastructure.entsoe.repository import EntsoeRepository
 from probabilistic_load_forecast.infrastructure.entsoe.fetcher import EntsoeFetcher
-from probabilistic_load_forecast.infrastructure.entsoe.mapper import XML_Load_Mapper
+from probabilistic_load_forecast.infrastructure.entsoe.mapper import XmlLoadMapper
 from probabilistic_load_forecast.infrastructure.entsoe.api_client import EntsoeAPIClient
 
 from probabilistic_load_forecast.infrastructure.db.repository import PostgreRepository
@@ -37,7 +37,7 @@ def main():
         enstoe_api_client = EntsoeAPIClient(endpoint=os.getenv("ENTSOE_BASE_URL"),
                         security_token=os.getenv("ENTSOE_SECURITY_TOKEN"))
         entsoe_fetcher = EntsoeFetcher(enstoe_api_client)
-        mapper = XML_Load_Mapper()
+        mapper = XmlLoadMapper()
         entsoe_repo = EntsoeRepository(entsoe_fetcher, mapper)
         postgres_repo = PostgreRepository(os.getenv("PG_DSN"))
         use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)

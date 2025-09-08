@@ -1,4 +1,4 @@
-from probabilistic_load_forecast.infrastructure.entsoe.mapper import XML_Load_Mapper
+from probabilistic_load_forecast.infrastructure.entsoe.mapper import XmlLoadMapper
 from probabilistic_load_forecast.domain.entities import Measurement
 
 
@@ -419,7 +419,7 @@ SAMPLE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 </GL_MarketDocument>"""
 
 def test_parse_xml_load_data():
-    result = XML_Load_Mapper.map(SAMPLE_XML)
+    result = XmlLoadMapper.map(SAMPLE_XML)
     assert isinstance(result, list)
     assert result[0] == Measurement(timestamp="2025-07-13T00:00:00+00:00", value=4544)
     assert result[1] == Measurement(timestamp="2025-07-13T00:15:00+00:00", value=4529)

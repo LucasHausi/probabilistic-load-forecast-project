@@ -1,9 +1,9 @@
-from lxml import etree
-from typing import List
 from datetime import datetime, timedelta
+from typing import List
+from lxml import etree
 from probabilistic_load_forecast.domain.entities import Measurement
 
-class XML_Load_Mapper:
+class XmlLoadMapper:
     @staticmethod
     def map(xml: str) -> List[Measurement]:
         ns = {'ns': 'urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0'}
