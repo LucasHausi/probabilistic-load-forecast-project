@@ -25,5 +25,7 @@ class EntsoeAPIClient():
             response.raise_for_status()
             return response.text
         except requests.exceptions.RequestException as e:
-            logging.warning("An error occured while fetching the load data: %s", e)
+            logging.warning("An error occured while fetching the load data: "
+            "Parameters: %s"
+            "Error: %s", params, e)
             return None

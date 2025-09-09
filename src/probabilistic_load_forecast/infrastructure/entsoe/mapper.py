@@ -14,7 +14,7 @@ class XmlLoadMapper:
         resolution = period.find('.//ns:resolution', namespaces=ns).text
 
         # Parse start time
-        start_dt = datetime.fromisoformat(start_str)
+        start_dt = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
         if resolution == 'PT15M':
             step = timedelta(minutes=15)
         else:

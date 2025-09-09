@@ -10,6 +10,10 @@ class PostgreRepository():
         with psycopg.connect(self.dsn) as conn:
             with conn.cursor() as cur:
                 cur.executemany(
-                        "INSERT INTO load_measurements (measured_at, value) VALUES (%s, %s)", 
+                        """
+                        INSERT INTO actual_total_load_at (measured_at, value) VALUES (%s, %s)
+                        ON CONFLICT (measured_at) DO UPDATE 
+                        SET value = EXCLUDED.value
+                        """,
                         [(m.timestamp, m.value) for m in measurements]
                     )

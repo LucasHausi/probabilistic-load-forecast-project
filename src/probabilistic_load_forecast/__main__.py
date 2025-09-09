@@ -3,6 +3,7 @@ This module currently orchestrates the logic for a simple POC
 """
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from probabilistic_load_forecast.infrastructure.entsoe.repository import EntsoeRepository
 from probabilistic_load_forecast.infrastructure.entsoe.fetcher import EntsoeFetcher
@@ -21,10 +22,11 @@ def write_results_to_debug_file(results):
             f.write(str(item) + "\n")
 
 
-    min_date = min(results, key= lambda x: x.timestamp)
-    max_date = max(results, key= lambda x: x.timestamp)
-    print(f"Min date: {min_date}")
-    print(f"Max date: {max_date}")
+    # min_date = min(results, key= lambda x: x.timestamp)
+    # max_date = max(results, key= lambda x: x.timestamp)
+    # print(f"Min date: {min_date}")
+    # print(f"Max date: {max_date}")
+
 
 
 def main():
@@ -42,12 +44,13 @@ def main():
         postgres_repo = PostgreRepository(os.getenv("PG_DSN"))
         use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)
 
-        start = datetime(2023, 1, 1, 0, 0)
-        end = datetime(2025, 1, 31, 0, 0)
-        # results = entsoe_repository.get_data(start, end)
-        results = use_case(start, end)
-        print(results)
 
+        area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
+
+        start_local = datetime(2018, 10, 1, 1, 0, tzinfo=area_tz)
+        end_local =  datetime.now(area_tz)
+        results = use_case(start_local, end_local)
+        print(results)
 
     else:
         raise FileNotFoundError(
