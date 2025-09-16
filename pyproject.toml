@@ -4,9 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "probabilistic_load_forecast"
+requires-python = ">=3.11,<3.13"
 version = "0.0.1"
 classifiers = [
     "Private :: Do Not Upload"
+]
+dependencies = [
+    "cdsapi>=0.7.6",
+    "dotenv>=0.9.9",
+    "lxml>=6.0.1",
+    "psycopg[binary]>=3.2.10",
+    "requests>=2.32.5",
+    "setuptools>=80.9.0",
+    "wheel>=0.45.1",
 ]
 
 [project.scripts]
@@ -14,3 +24,10 @@ plf = "probabilistic_load_forecast.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "pylint>=3.3.8",
+    "pytest>=8.4.2",
+]
