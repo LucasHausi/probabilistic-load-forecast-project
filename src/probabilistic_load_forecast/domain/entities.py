@@ -35,3 +35,9 @@ class MeasurementProvider(ABC):
         Returns:
             List[Measurement]: The measurements fetched from the data source.
         """
+
+@dataclass
+class CDSConfig:
+    dataset: str
+    variable: List[str]
+    area: List[float]
