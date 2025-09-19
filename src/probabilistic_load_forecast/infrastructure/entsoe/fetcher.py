@@ -2,10 +2,10 @@
 This module contains the logic for fetching data from the ENTSOE API
 """
 from typing import List
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 from probabilistic_load_forecast.infrastructure.entsoe.api_client import EntsoeAPIClient
 from probabilistic_load_forecast.domain.entities import Measurement
-
+from probabilistic_load_forecast.infrastructure import utils
 MAX_TIMEINTERVAL = timedelta(days=365)
 ENTSOE_FMT = "%Y%m%d%H%M"
 
@@ -16,11 +16,7 @@ def floor_to_minutes(dt: datetime, step:int) -> datetime:
     discard = dt.minute % step
     return dt.replace(minute=dt.minute - discard, second=0, microsecond=0)
 
-def to_utc(dt: datetime) -> datetime:
-    """Convert any aware datetime to UTC."""
-    if dt.tzinfo is None:
-        raise ValueError("Naive datetime encountered; attach tzinfo first.")
-    return dt.astimezone(timezone.utc)
+
 
 class EntsoeFetcher():
     """
@@ -48,8 +44,8 @@ class EntsoeFetcher():
         while chunk_start < end:
             chunk_end = min(end, chunk_start+MAX_TIMEINTERVAL)
 
-            period_start_utc = to_utc(chunk_start)
-            period_end_utc = to_utc(chunk_end)
+            period_start_utc = utils.to_utc(chunk_start)
+            period_end_utc = utils.to_utc(chunk_end)
 
             query_params = {
                 "documentType":"A65",

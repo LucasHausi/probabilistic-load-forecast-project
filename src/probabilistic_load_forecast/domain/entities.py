@@ -3,7 +3,7 @@ This module contains the core business entities.
 """
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple, Dict
 from datetime import datetime
 
 @dataclass
@@ -17,6 +17,12 @@ class Measurement:
     """
     timestamp: str
     value: float
+
+@dataclass
+class SpatioTemporalMeasurement:
+    timestamp: datetime
+    location: Tuple[float, float]
+    variables: Dict[str, float]
 
 class MeasurementProvider(ABC):
     """
@@ -35,9 +41,3 @@ class MeasurementProvider(ABC):
         Returns:
             List[Measurement]: The measurements fetched from the data source.
         """
-
-@dataclass
-class CDSConfig:
-    dataset: str
-    variable: List[str]
-    area: List[float]
