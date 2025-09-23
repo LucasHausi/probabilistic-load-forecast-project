@@ -208,3 +208,5 @@ __marimo__/
 
 # Custom
 .pre-commit-config.yaml
+/data/raw/*
+!/data/raw/.gitkeep
