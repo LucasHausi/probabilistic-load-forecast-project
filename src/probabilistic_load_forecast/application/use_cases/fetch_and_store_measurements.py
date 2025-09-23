@@ -2,7 +2,7 @@
 Application use case for fetching load measurements and persisting them.   
 """
 
-from probabilistic_load_forecast.domain.entities import MeasurementProvider
+from probabilistic_load_forecast.domain.model import MeasurementProvider
 
 class FetchAndStoreMeasurements:
     """

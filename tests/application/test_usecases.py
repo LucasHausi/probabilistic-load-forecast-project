@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 from datetime import datetime
-from probabilistic_load_forecast.domain.entities import Measurement
+from probabilistic_load_forecast.domain.model import Measurement
 from probabilistic_load_forecast.infrastructure.cds.repository import CDSRepository
 
 def test_repository_calls_fetcher_and_mapper():

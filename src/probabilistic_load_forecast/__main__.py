@@ -9,19 +9,19 @@ import cdsapi
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
-from probabilistic_load_forecast.infrastructure.entsoe.repository import EntsoeRepository
-from probabilistic_load_forecast.infrastructure.entsoe.fetcher import EntsoeFetcher
-from probabilistic_load_forecast.infrastructure.entsoe.mapper import XmlLoadMapper
-from probabilistic_load_forecast.infrastructure.entsoe.api_client import EntsoeAPIClient
+from probabilistic_load_forecast.adapters.entsoe.repository import EntsoeRepository
+from probabilistic_load_forecast.adapters.entsoe.fetcher import EntsoeFetcher
+from probabilistic_load_forecast.adapters.entsoe.mapper import XmlLoadMapper
+from probabilistic_load_forecast.adapters.entsoe.api_client import EntsoeAPIClient
 
-from probabilistic_load_forecast.infrastructure.db.repository import PostgreRepository
+from probabilistic_load_forecast.adapters.db.repository import PostgreRepository
 from probabilistic_load_forecast.application.use_cases import FetchAndStoreMeasurements
 
-from probabilistic_load_forecast.infrastructure.cds.api_client import CDSAPIClient
-from probabilistic_load_forecast.infrastructure.cds.repository import CDSRepository
-from probabilistic_load_forecast.infrastructure.cds.mapper import CDSMapper
+from probabilistic_load_forecast.adapters.cds.api_client import CDSAPIClient
+from probabilistic_load_forecast.adapters.cds.repository import CDSRepository
+from probabilistic_load_forecast.adapters.cds.mapper import CDSMapper
 
-from probabilistic_load_forecast.infrastructure.cds.api_client import CDSConfig
+from probabilistic_load_forecast.adapters.cds.api_client import CDSConfig
 
 logging.basicConfig(
     level=logging.INFO,

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from probabilistic_load_forecast.domain.model import MeasurementProvider
 from pprint import pprint
 from dataclasses import dataclass
-from probabilistic_load_forecast.infrastructure import utils
+from probabilistic_load_forecast.adapters import utils
 
 @dataclass(frozen=True)
 class CDSTimeFrame:

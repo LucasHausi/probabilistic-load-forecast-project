@@ -1,5 +1,5 @@
 from probabilistic_load_forecast.infrastructure.entsoe.mapper import XmlLoadMapper
-from probabilistic_load_forecast.domain.entities import Measurement
+from probabilistic_load_forecast.domain.model import Measurement
 
 
 def test_parse_xml_load_data():

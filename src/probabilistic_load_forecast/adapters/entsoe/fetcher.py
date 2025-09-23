@@ -3,9 +3,9 @@ This module contains the logic for fetching data from the ENTSOE API
 """
 from typing import List
 from datetime import timedelta, datetime
-from probabilistic_load_forecast.infrastructure.entsoe.api_client import EntsoeAPIClient
+from probabilistic_load_forecast.adapters.entsoe.api_client import EntsoeAPIClient
 from probabilistic_load_forecast.domain.model import Measurement
-from probabilistic_load_forecast.infrastructure import utils
+from probabilistic_load_forecast.adapters import utils
 MAX_TIMEINTERVAL = timedelta(days=365)
 ENTSOE_FMT = "%Y%m%d%H%M"
 
