@@ -17,6 +17,12 @@ class CDSLicenseError(CDSDataUnavailable):
     """Raised when required CDS licences are not accepted."""
 
 @dataclass
+class CDSTask:
+    url: str
+    headers: dict
+    session: object
+
+@dataclass
 class CDSConfig():
     dataset: str
     variable: List[str]
@@ -37,10 +43,10 @@ class CDSAPIClient():
             month: str,
             day: List[str],
             time: List[str],
-            filename: str,
+            # filename: str,
             download_format: str = "unarchived",
-            data_format: str = "grib"
-        ) -> Path:
+            data_format: str = "netcdf"
+        ) -> CDSTask:
 
         request = {
             "dataset" : self.config.dataset,
@@ -54,10 +60,16 @@ class CDSAPIClient():
             "area": self.config.area,
         }
 
-        target = self.download_dir / filename
+        # target = self.download_dir / filename
         try:
-            self.client.retrieve(self.config.dataset, request, target)
-            return target
+            remote = self.client.retrieve(self.config.dataset, request)
+            return CDSTask(
+                url=remote.url,
+                headers=remote.headers,
+                session=remote.session,
+            )
+            task = self.client.retrieve(self.config.dataset, request)#, target)
+            return task
         except requests.exceptions.HTTPError as e:
             if e.response is not None and e.response.status_code == 403:
                 logger.error("CDS license not accepted for dataset %s", self.config.dataset)

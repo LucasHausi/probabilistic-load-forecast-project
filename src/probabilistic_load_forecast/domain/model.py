@@ -22,14 +22,7 @@ class LoadMeasurement:
 
 @dataclass
 class LoadTimeseries:
-    """
-    Domain entity representing a load timeseries
-    
-    Attributes:
-        timestamp (str): The time at which the measurement was taken.
-        value (float): The measured load value.
-    """
-    data: pd.DatetimeIndex
+    data: pd.Series
     bidding_zone: str
 
 @dataclass(frozen=True)
@@ -45,7 +38,7 @@ class SpacialTimeseries():
     area: AreaBoundingBox
 
 
-class MeasurementProvider(ABC):
+class DataProvider(ABC):
     """
     Abstract interface (port) for retrieving measurements from a data source.
 

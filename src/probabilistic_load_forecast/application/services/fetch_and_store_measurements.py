@@ -2,7 +2,7 @@
 Application use case for fetching load measurements and persisting them.   
 """
 
-from probabilistic_load_forecast.domain.model import MeasurementProvider
+from probabilistic_load_forecast.domain.model import DataProvider
 
 class FetchAndStoreMeasurements:
     """
@@ -13,11 +13,10 @@ class FetchAndStoreMeasurements:
       - dataprovider: a MeasurementProvider that supplies measurement data
       - repo: a Repository responsible for persisting the data
     """
-    def __init__(self, fetcher: MeasurementProvider, repo):
-        self.dataprovider = fetcher
+    def __init__(self, provider: DataProvider, repo):
+        self.dataprovider = provider
         self.repo = repo
 
     def __call__(self, start, end):
         measurements = list(self.dataprovider.get_data(start, end))
         self.repo.save(measurements)
-        return measurements

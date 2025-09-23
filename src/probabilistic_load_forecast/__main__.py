@@ -60,7 +60,7 @@ def main():
     """
     if load_dotenv(".env"):
         enstoe_api_client = EntsoeAPIClient(endpoint=config.get_entsoe_url(),
-                        security_token=os.getenv("ENTSOE_SECURITY_TOKEN"))
+                        security_token=config.get_entsoe_security_token())
         entsoe_fetcher = EntsoeFetcher(enstoe_api_client)
         mapper = XmlLoadMapper()
         entsoe_repo = EntsoeDataProvider(entsoe_fetcher, mapper)
@@ -92,7 +92,7 @@ def main():
         area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
 
         start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        end_local =  datetime(2019, 3, 31, 0, 0, tzinfo=area_tz)
+        end_local =  datetime(2018, 12, 31, 0, 0, tzinfo=area_tz)
         cds_repo.get_data(start=start_local, end=end_local)
 
         # ----------------------------------------------------------------

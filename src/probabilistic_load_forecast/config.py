@@ -14,6 +14,12 @@ def get_entsoe_url() -> str:
         raise ValueError("ENTSOE base URL is missing. Set the ENTSOE_BASE_URL environment variable.")
     return entsoe_url
 
+def get_entsoe_security_token():
+    entsoe_token = os.getenv("ENTSOE_SECURITY_TOKEN")
+    if entsoe_token is None:
+        raise ValueError("ENTSOE security token is missing. Set the ENTSOE_SECURITY_TOKEN environment variable.")
+    return entsoe_token
+
 
 def get_cdsapi_url() -> str:
     cdsapi_url = os.getenv("CDSAPI_URL")
