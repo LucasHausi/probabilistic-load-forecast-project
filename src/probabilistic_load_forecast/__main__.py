@@ -15,10 +15,10 @@ from probabilistic_load_forecast.adapters.entsoe.mapper import XmlLoadMapper
 from probabilistic_load_forecast.adapters.entsoe.api_client import EntsoeAPIClient
 
 from probabilistic_load_forecast.adapters.db.repository import PostgreRepository
-from probabilistic_load_forecast.application.use_cases import FetchAndStoreMeasurements
+from probabilistic_load_forecast.application.services import FetchAndStoreMeasurements
 
 from probabilistic_load_forecast.adapters.cds.api_client import CDSAPIClient
-from probabilistic_load_forecast.adapters.cds.repository import CDSRepository
+from probabilistic_load_forecast.adapters.cds.provider import CDSDataProvider
 from probabilistic_load_forecast.adapters.cds.mapper import CDSMapper
 
 from probabilistic_load_forecast.adapters.cds.api_client import CDSConfig
@@ -78,7 +78,7 @@ def main():
         )
         cds_api_client = CDSAPIClient(client=cds_client, config=cds_config)
         cds_mapper = CDSMapper()
-        cds_repo = CDSRepository(fetcher=cds_api_client, mapper=cds_mapper)
+        cds_repo = CDSDataProvider(fetcher=cds_api_client, mapper=cds_mapper)
         # cds_api_client.fetch_data(
         #     year="2021",
         #     month="02",

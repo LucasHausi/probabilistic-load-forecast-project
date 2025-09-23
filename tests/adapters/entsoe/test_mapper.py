@@ -1,4 +1,4 @@
-from probabilistic_load_forecast.infrastructure.entsoe.mapper import XmlLoadMapper
+from probabilistic_load_forecast.adapters.entsoe.mapper import XmlLoadMapper
 from probabilistic_load_forecast.domain.model import Measurement
 
 

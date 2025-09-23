@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import pytest
-from probabilistic_load_forecast.infrastructure.entsoe.fetcher import floor_to_minutes, to_utc
+from probabilistic_load_forecast.adapters.entsoe.fetcher import floor_to_minutes
+from probabilistic_load_forecast.adapters.utils import to_utc
 
 def test_floor_to_minutes_rounds_down():
     dt = datetime(2023, 1, 1, 10, 7)

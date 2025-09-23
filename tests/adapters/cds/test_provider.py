@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import Mock
 from datetime import datetime
-from probabilistic_load_forecast.infrastructure.cds.repository import CDSTimeFrame, CDSRepository
-from probabilistic_load_forecast.infrastructure.cds.api_client import CDSConfig
+from probabilistic_load_forecast.adapters.cds.provider import CDSTimeFrame, CDSDataProvider
+from probabilistic_load_forecast.adapters.cds.api_client import CDSConfig
 
 @pytest.mark.parametrize(
     "variables,start,end,limit,expected",
@@ -11,7 +11,7 @@ from probabilistic_load_forecast.infrastructure.cds.api_client import CDSConfig
         (["t2m", "tp"], datetime(2024, 5, 1), datetime(2025, 12, 2), 12000, True), # exceeds limit
     ]
 )
-def test_exeeds_limit(variables, start, end, limit, expected):
+def test_config_exeeds_limit(variables, start, end, limit, expected):
     cfg = CDSConfig(
     dataset="era5",
     variable=variables,
@@ -21,10 +21,10 @@ def test_exeeds_limit(variables, start, end, limit, expected):
     mock_fetcher = Mock()
     mock_fetcher.config = cfg
 
-    repo = CDSRepository(fetcher=mock_fetcher, mapper=Mock())
+    provider = CDSDataProvider(fetcher=mock_fetcher, mapper=Mock())
 
     tf = CDSTimeFrame(start, end)
-    result = repo._exceeds_limit(tf)
+    result = provider._exceeds_limit(tf)
     print("result", result)
     assert result is expected
 
@@ -34,7 +34,7 @@ def test_exeeds_limit(variables, start, end, limit, expected):
 
 # Tests for the CDSTimeFrame
 # -------------------------------------------------------------------------------------
-def test_invalid_timeframe_raises():
+def test_cds_timeframe_invalid_timeframe_raises():
     start = datetime(2025, 5, 1)
     end = datetime(2025, 4, 1)
     with pytest.raises(ValueError, match="End must be after start"):
@@ -47,12 +47,12 @@ def test_invalid_timeframe_raises():
         (datetime(2023, 5, 1), datetime(2023, 5, 3), ["01", "02", "03"]),
     ],
 )
-def test_format_multiple_days(start, end, expected_days):
+def test_cds_timeframe_format_multiple_days(start, end, expected_days):
     tf = CDSTimeFrame(start, end)
     result = tf.to_dict()
     assert result["day"] == expected_days
 
-def test_format_single_day():
+def test_cds_timeframe_format_single_day():
     start = datetime(2023, 5, 1)
     end = datetime(2023, 5, 1)
     tf = CDSTimeFrame(start, end)
@@ -71,7 +71,7 @@ def test_format_single_day():
         (datetime(2023, 5, 1), datetime(2025, 5, 1), ["2023", "2024", "2025"]),
     ],
 )
-def test_format_multiple_years(start, end, expected_years):
+def test_cds_timeframe_format_multiple_years(start, end, expected_years):
     tf = CDSTimeFrame(start, end)
     result = tf.to_dict()
     assert result["year"] == expected_years
@@ -83,7 +83,7 @@ def test_format_multiple_years(start, end, expected_years):
         (datetime(2023, 5, 1), datetime(2025, 7, 1), ["05", "06", "07"]),
     ],
 )
-def test_format_multiple_months(start, end, expected_months):
+def test_cds_timeframe_format_multiple_months(start, end, expected_months):
     tf = CDSTimeFrame(start, end)
     result = tf.to_dict()
     assert result["month"] == expected_months

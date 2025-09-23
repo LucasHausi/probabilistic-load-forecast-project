@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Dict
 from datetime import datetime
+import xarray
 
 @dataclass
 class Measurement:
@@ -18,11 +19,18 @@ class Measurement:
     timestamp: str
     value: float
 
-@dataclass
-class SpatioTemporalMeasurement:
-    timestamp: datetime
-    location: Tuple[float, float]
-    variables: Dict[str, float]
+@dataclass(frozen=True)
+class AreaBoundingBox():
+    north: float
+    south: float
+    west: float
+    east: float
+
+@dataclass(frozen=True)
+class SpacialTimeseries():
+    data: xarray
+    area: AreaBoundingBox
+
 
 class MeasurementProvider(ABC):
     """
