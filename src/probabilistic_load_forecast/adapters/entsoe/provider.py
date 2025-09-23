@@ -1,5 +1,5 @@
 from itertools import chain
-class EntsoeRepository:
+class EntsoeDataProvider:
     def __init__(self, fetcher, mapper):
         self.fetcher = fetcher
         self.mapper = mapper

@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from typing import List
 from lxml import etree
-from probabilistic_load_forecast.domain.model import Measurement
+from probabilistic_load_forecast.domain.model import LoadMeasurement
 
 class XmlLoadMapper:
     @staticmethod
-    def map(xml: str) -> List[Measurement]:
+    def map(xml: str) -> List[LoadMeasurement]:
         ns = {'ns': 'urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0'}
         tree = etree.fromstring(xml.encode()) # pylint: disable=c-extension-no-member
         # Find Period
@@ -26,5 +26,5 @@ class XmlLoadMapper:
             pos = int(point.find('ns:position', namespaces=ns).text)
             quantity = float(point.find('ns:quantity', namespaces=ns).text)
             ts = start_dt + step * (pos - 1)
-            result.append(Measurement(timestamp=ts.isoformat(), value=quantity))
+            result.append(LoadMeasurement(timestamp=ts.isoformat(), value=quantity))
         return result

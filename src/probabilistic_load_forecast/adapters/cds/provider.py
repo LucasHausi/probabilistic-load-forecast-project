@@ -1,5 +1,7 @@
 from itertools import chain
-from datetime import datetime, timedelta
+from typing import List
+from datetime import datetime, timedelta, timezone
+import calendar
 from probabilistic_load_forecast.domain.model import MeasurementProvider
 from pprint import pprint
 from dataclasses import dataclass
@@ -12,12 +14,18 @@ class CDSTimeFrame:
 
     def __post_init__(self):
         if self.end < self.start:
-            raise ValueError("End must be after start")
+            raise ValueError(
+                "End must be after start. "
+                f"Start: {self.start} "
+                f"End: {self.end} "
+            )
+        if self.end.month != self.start.month:
+            raise ValueError("The Timeframe is only allowed to be maximally a month")
         
     def to_dict(self) -> dict:
         return {
-            "year": [f"{y}" for y in range(self.start.year, self.end.year + 1)],
-            "month": [f"{m:02d}" for m in range(self.start.month, self.end.month + 1)],
+            "year": f"{self.start.year}",
+            "month": f"{self.start.month:02d}",
             "day": [f"{d:02d}" for d in range(self.start.day, self.end.day + 1)],
             "time": [f"{h:02d}:00" for h in range(24)],
         }
@@ -37,40 +45,56 @@ class CDSDataProvider():
         field_count = n_vars * days * hours
         return field_count > cfg.field_limit
     
-    def _get_max_chunksize(self) -> bool:
-        cfg = self.fetcher.config
-        n_vars = len(cfg.variable)
-        days = cfg.field_limit // (n_vars * 24)
-        return days
+    def _get_cds_timeframes(self, start: datetime, end: datetime) -> List[CDSTimeFrame]:
+        timeframes = []
+        
+        chunk_start = start
 
+        while chunk_start < end:
+            _, days_this_month = calendar.monthrange(chunk_start.year, chunk_start.month)
+            remaining_days = days_this_month-chunk_start.day
+
+            chunk_end = min(chunk_start+timedelta(days=remaining_days), end)
+
+            timeframes.append(CDSTimeFrame(chunk_start, chunk_end))
+            chunk_start = chunk_end + timedelta(days=1)
+
+        return timeframes
+    
     def get_data(self, start, end, **kwargs):
 
         raw_data_locations = []
 
         # Possible UTC conversion here
-        chunk_start = utils.to_utc(start)
+        start = utils.to_utc(start)
         end = utils.to_utc(end)
-        
-        max_days = self._get_max_chunksize()
 
-        while chunk_start < end:
-            chunk_end = min(chunk_start+timedelta(days=max_days), end)
+        timeframes = self._get_cds_timeframes(start, end)
 
-            datetime_cds_format = CDSTimeFrame(chunk_start, chunk_end).to_dict()
+        for timeframe in timeframes:
 
-            # raw_data_location = self.fetcher.fetch(
-            #     year=datetime_cds_format["year"],
-            #     month=datetime_cds_format["month"],
-            #     day=datetime_cds_format["day"],
-            #     time=datetime_cds_format["time"],
-            #     filename=kwargs.get("filename", f"era5_{datetime_cds_format["year"]}_{datetime_cds_format["month"]}.nc4.nc"),
-            #     **kwargs
-            # )
+            datetime_cds_format = timeframe.to_dict()
 
+            raw_data_location = self.fetcher.fetch(
+                year=datetime_cds_format["year"],
+                month=datetime_cds_format["month"],
+                day=datetime_cds_format["day"],
+                time=datetime_cds_format["time"],
+                filename=kwargs.get("filename", f"era5_{datetime_cds_format["year"]}_{datetime_cds_format["month"]}.nc4.nc"),
+                **kwargs
+            )
+
+            # filename=kwargs.get("filename", f"era5_{datetime_cds_format["year"]}_{datetime_cds_format["month"]}.nc4.nc")
             # raw_data_locations.append(raw_data_location)
-            pprint(datetime_cds_format)
-            print(f"Querying: {chunk_start} to {chunk_end}")
-            chunk_start = chunk_end + timedelta(hours=1)
+            # print("Querying:")
+            # print(filename)
 
         mapped_data = [self.mapper.map(data) for data in raw_data_locations if data is not None]
         return chain.from_iterable(mapped_data)
+    
+class InMemoryCDSDataProvider():
+        def __init__(self, paths):
+            self.paths = paths
+
+        def retrieve(self):
+            ...

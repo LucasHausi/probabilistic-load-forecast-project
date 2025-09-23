@@ -9,19 +9,24 @@ import cdsapi
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
-from probabilistic_load_forecast.adapters.entsoe.repository import EntsoeRepository
-from probabilistic_load_forecast.adapters.entsoe.fetcher import EntsoeFetcher
-from probabilistic_load_forecast.adapters.entsoe.mapper import XmlLoadMapper
-from probabilistic_load_forecast.adapters.entsoe.api_client import EntsoeAPIClient
 
-from probabilistic_load_forecast.adapters.db.repository import PostgreRepository
+from probabilistic_load_forecast.adapters.entsoe import (
+    EntsoeDataProvider,
+    EntsoeFetcher,
+    XmlLoadMapper,
+    EntsoeAPIClient,
+)
+
+from probabilistic_load_forecast.adapters.db import PostgreRepository
+
 from probabilistic_load_forecast.application.services import FetchAndStoreMeasurements
 
-from probabilistic_load_forecast.adapters.cds.api_client import CDSAPIClient
-from probabilistic_load_forecast.adapters.cds.provider import CDSDataProvider
-from probabilistic_load_forecast.adapters.cds.mapper import CDSMapper
-
-from probabilistic_load_forecast.adapters.cds.api_client import CDSConfig
+from probabilistic_load_forecast.adapters.cds import (
+    CDSAPIClient,
+    CDSConfig,
+    CDSDataProvider,
+    CDSMapper,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,7 +62,7 @@ def main():
                         security_token=os.getenv("ENTSOE_SECURITY_TOKEN"))
         entsoe_fetcher = EntsoeFetcher(enstoe_api_client)
         mapper = XmlLoadMapper()
-        entsoe_repo = EntsoeRepository(entsoe_fetcher, mapper)
+        entsoe_repo = EntsoeDataProvider(entsoe_fetcher, mapper)
         postgres_repo = PostgreRepository(os.getenv("PG_DSN"))
 
         # Creating the cds client
@@ -79,31 +84,6 @@ def main():
         cds_api_client = CDSAPIClient(client=cds_client, config=cds_config)
         cds_mapper = CDSMapper()
         cds_repo = CDSDataProvider(fetcher=cds_api_client, mapper=cds_mapper)
-        # cds_api_client.fetch_data(
-        #     year="2021",
-        #     month="02",
-        #     day=[
-        #         "01", "02", "03",
-        #         "04", "05", "06",
-        #         "07", "08", "09",
-        #         "10", "11", "12",
-        #         "13", "14", "15",
-        #         "16", "17", "18",
-        #         "19", "20", "21",
-        #         "22", "23", "24",
-        #         "25", "26", "27",
-        #         "28"],
-        #     time=[
-        #         "00:00", "01:00", "02:00",
-        #         "03:00", "04:00", "05:00",
-        #         "06:00", "07:00", "08:00",
-        #         "09:00", "10:00", "11:00",
-        #         "12:00", "13:00", "14:00",
-        #         "15:00", "16:00", "17:00",
-        #         "18:00", "19:00", "20:00",
-        #         "21:00", "22:00", "23:00"],
-        #     filename="test.grib"
-        # )
 
         # ----------------------------------------------------------------
         #                    Testing the CDS Fetching

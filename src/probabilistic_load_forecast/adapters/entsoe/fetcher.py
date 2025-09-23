@@ -4,8 +4,9 @@ This module contains the logic for fetching data from the ENTSOE API
 from typing import List
 from datetime import timedelta, datetime
 from probabilistic_load_forecast.adapters.entsoe.api_client import EntsoeAPIClient
-from probabilistic_load_forecast.domain.model import Measurement
+from probabilistic_load_forecast.domain.model import LoadMeasurement
 from probabilistic_load_forecast.adapters import utils
+
 MAX_TIMEINTERVAL = timedelta(days=365)
 ENTSOE_FMT = "%Y%m%d%H%M"
 
@@ -26,7 +27,7 @@ class EntsoeFetcher():
     def __init__(self, api_client: EntsoeAPIClient):
         self._api_client = api_client
 
-    def fetch(self, start, end, **kwargs)-> List[Measurement]:
+    def fetch(self, start, end, **kwargs)-> List[LoadMeasurement]:
         """Fetches the data from the ENTSOE API given the timeframe"
         "and handles the chunking logic if the timeframe is larger then the API limit.
 

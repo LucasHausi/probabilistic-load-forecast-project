@@ -1,12 +1,14 @@
 from typing import List
 import psycopg
-
-from probabilistic_load_forecast.domain.model import Measurement
+from probabilistic_load_forecast.domain.model import 
+from probabilistic_load_forecast.domain.model import LoadMeasurement
 class PostgreRepository():
     def __init__(self, dsn: str):
         self.dsn = dsn
 
-    def save(self, measurements: List[Measurement]) -> None:
+    def get() -> :
+
+    def add(self, measurements: List[LoadMeasurement]) -> None:
         with psycopg.connect(self.dsn) as conn:
             with conn.cursor() as cur:
                 cur.executemany(

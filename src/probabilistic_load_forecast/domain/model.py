@@ -3,12 +3,13 @@ This module contains the core business entities.
 """
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Dict
+from typing import List
 from datetime import datetime
 import xarray
+import pandas as pd
 
 @dataclass
-class Measurement:
+class LoadMeasurement:
     """
     Domain entity representing a single measurement of load data.
     
@@ -19,6 +20,18 @@ class Measurement:
     timestamp: str
     value: float
 
+@dataclass
+class LoadTimeseries:
+    """
+    Domain entity representing a load timeseries
+    
+    Attributes:
+        timestamp (str): The time at which the measurement was taken.
+        value (float): The measured load value.
+    """
+    data: pd.DatetimeIndex
+    bidding_zone: str
+
 @dataclass(frozen=True)
 class AreaBoundingBox():
     north: float
@@ -28,7 +41,7 @@ class AreaBoundingBox():
 
 @dataclass(frozen=True)
 class SpacialTimeseries():
-    data: xarray
+    data: xarray.Dataset
     area: AreaBoundingBox
 
 
@@ -39,7 +52,7 @@ class MeasurementProvider(ABC):
     Concrete implementations may fetch data from APIs, databases, files, etc.
     """
     @abstractmethod
-    def get_data(self, start: datetime, end: datetime, **kwargs) -> List[Measurement]:
+    def get_data(self, start: datetime, end: datetime, **kwargs) -> List[LoadMeasurement]:
         """Retrieve measurements within a given time range.
         Args:
             start (datetime): Start of the time window (inclusive).
