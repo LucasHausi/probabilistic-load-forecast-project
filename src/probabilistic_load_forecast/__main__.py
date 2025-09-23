@@ -3,12 +3,13 @@ This module currently orchestrates the logic for a simple POC
 """
 import os
 import logging
-
-import cdsapi
-
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+import cdsapi
 from dotenv import load_dotenv
+
+from probabilistic_load_forecast import config
 
 from probabilistic_load_forecast.adapters.entsoe import (
     EntsoeDataProvider,
@@ -58,17 +59,17 @@ def main():
         FileNotFoundError: When the .env File is not found
     """
     if load_dotenv(".env"):
-        enstoe_api_client = EntsoeAPIClient(endpoint=os.getenv("ENTSOE_BASE_URL"),
+        enstoe_api_client = EntsoeAPIClient(endpoint=config.get_entsoe_url(),
                         security_token=os.getenv("ENTSOE_SECURITY_TOKEN"))
         entsoe_fetcher = EntsoeFetcher(enstoe_api_client)
         mapper = XmlLoadMapper()
         entsoe_repo = EntsoeDataProvider(entsoe_fetcher, mapper)
-        postgres_repo = PostgreRepository(os.getenv("PG_DSN"))
+        postgres_repo = PostgreRepository(config.get_postgre_uri())
 
         # Creating the cds client
         cds_client = cdsapi.Client(
-            url=os.getenv("CDSAPI_URL"),
-            key=os.getenv("CDSAPI_KEY"),
+            url=config.get_cdsapi_url(),
+            key=config.get_cdsapi_key(),
             wait_until_complete=False # So we can batch multiple polls
         )
         cds_config = CDSConfig(
