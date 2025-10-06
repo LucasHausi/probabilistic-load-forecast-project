@@ -26,6 +26,12 @@ class XmlLoadMapper:
         for point in period.findall(".//ns:Point", namespaces=ns):
             pos = int(point.find("ns:position", namespaces=ns).text)
             quantity = float(point.find("ns:quantity", namespaces=ns).text)
-            ts = start_dt + step * (pos - 1)
-            result.append(LoadMeasurement(timestamp=ts.isoformat(), value=quantity))
+            start_ts = start_dt + step * (pos - 1)
+            end_ts = start_ts + timedelta(minutes=15)
+            load_measure = LoadMeasurement(
+                start_ts=start_ts.strftime("%Y-%m-%d %H:%M"),
+                end_ts=end_ts.strftime("%Y-%m-%d %H:%M"),
+                load_mw=quantity,
+            )
+            result.append(load_measure)
         return result

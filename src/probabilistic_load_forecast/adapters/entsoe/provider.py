@@ -1,7 +1,8 @@
 from itertools import chain
+from probabilistic_load_forecast.domain.model import DataProvider
 
 
-class EntsoeDataProvider:
+class EntsoeDataProvider(DataProvider):
     def __init__(self, fetcher, mapper):
         self.fetcher = fetcher
         self.mapper = mapper

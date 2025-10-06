@@ -14,14 +14,11 @@ import pandas as pd
 class LoadMeasurement:
     """
     Domain entity representing a single measurement of load data.
-
-    Attributes:
-        timestamp (str): The time at which the measurement was taken.
-        value (float): The measured load value.
     """
 
-    timestamp: str
-    value: float
+    start_ts: str
+    end_ts: str
+    load_mw: float
 
 
 @dataclass

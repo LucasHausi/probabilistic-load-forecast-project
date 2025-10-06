@@ -1,3 +1,6 @@
-from .fetch_and_store_measurements import FetchAndStoreMeasurements
+from .entsoe_services import FetchAndStoreMeasurements, GetActualLoadData
 
-__all__ = ["FetchAndStoreMeasurements"]
+__all__ = [
+    "FetchAndStoreMeasurements",
+    "GetActualLoadData",
+]

@@ -21,4 +21,12 @@ class FetchAndStoreMeasurements:
 
     def __call__(self, start, end):
         measurements = list(self.dataprovider.get_data(start, end))
-        self.repo.save(measurements)
+        self.repo.add(measurements)
+
+
+class GetActualLoadData:
+    def __init__(self, repo):
+        self.repo = repo
+
+    def __call__(self, start, end):
+        return self.repo.get(start, end)

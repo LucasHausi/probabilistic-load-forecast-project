@@ -21,7 +21,10 @@ from probabilistic_load_forecast.adapters.entsoe import (
 
 from probabilistic_load_forecast.adapters.db import PostgreRepository
 
-from probabilistic_load_forecast.application.services import FetchAndStoreMeasurements
+from probabilistic_load_forecast.application.services import (
+    FetchAndStoreMeasurements,
+    GetActualLoadData,
+)
 
 from probabilistic_load_forecast.adapters.cds import (
     CDSAPIClient,
@@ -85,24 +88,28 @@ def main():
         # ----------------------------------------------------------------
         #                    Testing the CDS Fetching
         # ----------------------------------------------------------------
-        area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
+        # area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
 
-        start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        end_local = datetime(2018, 12, 31, 0, 0, tzinfo=area_tz)
-        cds_repo.get_data(start=start_local, end=end_local)
+        # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
+        # end_local = datetime(2018, 12, 31, 0, 0, tzinfo=area_tz)
+        # cds_repo.get_data(start=start_local, end=end_local)
 
         # ----------------------------------------------------------------
         #                    Testing the ENTSOE Fetching
         # ----------------------------------------------------------------
 
+        area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
+
         # use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)
-
-        # area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
-
-        # start_local = datetime(2018, 10, 1, 1, 0, tzinfo=area_tz)
-        # end_local =  datetime.now(area_tz)
+        # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
+        # end_local = datetime.now(area_tz)
         # results = use_case(start_local, end_local)
         # print(results)
+
+        use_case = GetActualLoadData(postgres_repo)
+        start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
+        end_local = datetime(2018, 10, 1, 1, 7, tzinfo=area_tz)
+        print(use_case(start_local, end_local))
 
     else:
         raise FileNotFoundError(
