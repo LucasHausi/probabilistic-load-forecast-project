@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+
 def to_utc(dt: datetime) -> datetime:
     """Convert any aware datetime to UTC."""
     if dt.tzinfo is None:

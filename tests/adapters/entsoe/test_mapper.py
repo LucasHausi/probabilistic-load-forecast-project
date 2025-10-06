@@ -7,5 +7,9 @@ def test_parse_xml_load_data():
         xml = f.read()
     measurements = XmlLoadMapper.map(xml)
     assert isinstance(measurements, list)
-    assert measurements[0] == LoadMeasurement(timestamp="2025-07-13T00:00:00+00:00", value=4544)
-    assert measurements[1] == LoadMeasurement(timestamp="2025-07-13T00:15:00+00:00", value=4529)
+    assert measurements[0] == LoadMeasurement(
+        timestamp="2025-07-13T00:00:00+00:00", value=4544
+    )
+    assert measurements[1] == LoadMeasurement(
+        timestamp="2025-07-13T00:15:00+00:00", value=4529
+    )

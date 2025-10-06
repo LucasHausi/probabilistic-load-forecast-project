@@ -11,6 +11,7 @@ import asyncio
 import aiohttp
 import aiofiles
 
+
 @dataclass(frozen=True)
 class CDSTimeFrame:
     start: datetime
@@ -19,13 +20,11 @@ class CDSTimeFrame:
     def __post_init__(self):
         if self.end < self.start:
             raise ValueError(
-                "End must be after start. "
-                f"Start: {self.start} "
-                f"End: {self.end} "
+                "End must be after start. " f"Start: {self.start} " f"End: {self.end} "
             )
         if self.end.month != self.start.month:
             raise ValueError("The Timeframe is only allowed to be maximally a month")
-        
+
     def to_dict(self) -> dict:
         return {
             "year": f"{self.start.year}",
@@ -35,8 +34,7 @@ class CDSTimeFrame:
         }
 
 
-
-class CDSDataProvider():
+class CDSDataProvider:
     def __init__(self, fetcher, mapper):
         self.fetcher = fetcher
         self.mapper = mapper
@@ -48,23 +46,25 @@ class CDSDataProvider():
         n_vars = len(cfg.variable)
         field_count = n_vars * days * hours
         return field_count > cfg.field_limit
-    
+
     def _get_cds_timeframes(self, start: datetime, end: datetime) -> List[CDSTimeFrame]:
         timeframes = []
-        
+
         chunk_start = start
 
         while chunk_start < end:
-            _, days_this_month = calendar.monthrange(chunk_start.year, chunk_start.month)
-            remaining_days = days_this_month-chunk_start.day
+            _, days_this_month = calendar.monthrange(
+                chunk_start.year, chunk_start.month
+            )
+            remaining_days = days_this_month - chunk_start.day
 
-            chunk_end = min(chunk_start+timedelta(days=remaining_days), end)
+            chunk_end = min(chunk_start + timedelta(days=remaining_days), end)
 
             timeframes.append(CDSTimeFrame(chunk_start, chunk_end))
             chunk_start = chunk_end + timedelta(days=1)
 
         return timeframes
-    
+
     async def _poll_and_download(self, cds_tasks: List[CDSTask]) -> List[str]:
         async with aiohttp.ClientSession() as session:
             tasks = [
@@ -74,18 +74,24 @@ class CDSDataProvider():
             results = await asyncio.gather(*tasks)
             return results
 
-    async def _poll_one(self, session: aiohttp.ClientSession, task: CDSTask, target_path: str):
+    async def _poll_one(
+        self, session: aiohttp.ClientSession, task: CDSTask, target_path: str
+    ):
         while True:
             async with session.get(url=task.url, headers=task.headers) as resp:
-                response  = await resp.json()
+                response = await resp.json()
                 state = response.get("status", "failed")
                 if state == "successful":
                     links = response.get("links", [])
-                    results_link = next((l["href"] for l in links if l["rel"] == "results"), None)
+                    results_link = next(
+                        (l["href"] for l in links if l["rel"] == "results"), None
+                    )
                     if results_link is None:
                         raise RuntimeError(f"No results link in job status: {response}")
-                    
-                    async with session.get(results_link, headers=task.headers) as results_resp:
+
+                    async with session.get(
+                        results_link, headers=task.headers
+                    ) as results_resp:
                         results_json = await results_resp.json()
 
                     # Step 2: extract the asset href
@@ -95,8 +101,11 @@ class CDSDataProvider():
                         raise RuntimeError(
                             f"No asset href in results JSON: {results_json}"
                         ) from exc
-                    
-                    async with session.get(url=asset_href, headers=task.headers) as dl, aiofiles.open(target_path, "wb") as f:
+
+                    async with (
+                        session.get(url=asset_href, headers=task.headers) as dl,
+                        aiofiles.open(target_path, "wb") as f,
+                    ):
                         async for chunk in dl.content.iter_chunked(1024):
                             await f.write(chunk)
 
@@ -104,8 +113,6 @@ class CDSDataProvider():
                 elif state == "failed":
                     raise RuntimeError(f"Task failed: {response}")
             await asyncio.sleep(30)
-
-        
 
     def get_data(self, start, end, **kwargs):
 
@@ -126,7 +133,7 @@ class CDSDataProvider():
                 month=datetime_cds_format["month"],
                 day=datetime_cds_format["day"],
                 time=datetime_cds_format["time"],
-                **kwargs
+                **kwargs,
             )
 
             # filename=kwargs.get("filename", f"era5_{datetime_cds_format["year"]}_{datetime_cds_format["month"]}.nc4.nc")
@@ -138,10 +145,10 @@ class CDSDataProvider():
 
         mapped_data = [self.mapper.map(data) for data in cds_tasks if data is not None]
         return chain.from_iterable(mapped_data)
-    
-class InMemoryCDSDataProvider():
-        def __init__(self, paths):
-            self.paths = paths
 
-        def retrieve(self):
-            ...
+
+class InMemoryCDSDataProvider:
+    def __init__(self, paths):
+        self.paths = paths
+
+    def retrieve(self): ...

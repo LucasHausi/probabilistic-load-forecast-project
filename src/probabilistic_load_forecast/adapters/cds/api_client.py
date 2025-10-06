@@ -1,6 +1,7 @@
 """
 This module contains the basic logic to fetch data from the public CDS(Climate Data Store) API Endpoints.
 """
+
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,11 +11,14 @@ import requests
 TIMEOUT = 30
 logger = logging.getLogger(__name__)
 
+
 class CDSDataUnavailable(Exception):
     """Generic CDS data error."""
 
+
 class CDSLicenseError(CDSDataUnavailable):
     """Raised when required CDS licences are not accepted."""
+
 
 @dataclass
 class CDSTask:
@@ -22,15 +26,19 @@ class CDSTask:
     headers: dict
     session: object
 
+
 @dataclass
-class CDSConfig():
+class CDSConfig:
     dataset: str
     variable: List[str]
     area: List[float]
     field_limit: int
 
-class CDSAPIClient():
-    def __init__(self, client, download_dir: str = "./data/raw", config:CDSConfig = None):
+
+class CDSAPIClient:
+    def __init__(
+        self, client, download_dir: str = "./data/raw", config: CDSConfig = None
+    ):
         self._timeout = TIMEOUT
         self.client = client
         self.download_dir = Path(download_dir)
@@ -38,18 +46,18 @@ class CDSAPIClient():
         self.config = config
 
     def fetch(
-            self,
-            year: str,
-            month: str,
-            day: List[str],
-            time: List[str],
-            # filename: str,
-            download_format: str = "unarchived",
-            data_format: str = "netcdf"
-        ) -> CDSTask:
+        self,
+        year: str,
+        month: str,
+        day: List[str],
+        time: List[str],
+        # filename: str,
+        download_format: str = "unarchived",
+        data_format: str = "netcdf",
+    ) -> CDSTask:
 
         request = {
-            "dataset" : self.config.dataset,
+            "dataset": self.config.dataset,
             "variable": self.config.variable,
             "year": year,
             "month": month,
@@ -68,11 +76,13 @@ class CDSAPIClient():
                 headers=remote.headers,
                 session=remote.session,
             )
-            task = self.client.retrieve(self.config.dataset, request)#, target)
+            task = self.client.retrieve(self.config.dataset, request)  # , target)
             return task
         except requests.exceptions.HTTPError as e:
             if e.response is not None and e.response.status_code == 403:
-                logger.error("CDS license not accepted for dataset %s", self.config.dataset)
+                logger.error(
+                    "CDS license not accepted for dataset %s", self.config.dataset
+                )
                 raise CDSLicenseError(
                     f"Licenses not accepted for dataset {self.config.dataset}"
                 ) from e
