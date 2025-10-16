@@ -66,10 +66,11 @@ class CDSDataProvider:
         return timeframes
 
     async def _poll_and_download(self, cds_tasks: List[CDSTask]) -> List[str]:
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=600)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             tasks = [
-                self._poll_one(session, task, f"./data/raw/era5_{str(i)}_.nc")
-                for i, task in enumerate(cds_tasks)
+                self._poll_one(session, task, "./data/raw/cds")
+                for task in cds_tasks
             ]
             results = await asyncio.gather(*tasks)
             return results
@@ -104,7 +105,7 @@ class CDSDataProvider:
 
                     async with (
                         session.get(url=asset_href, headers=task.headers) as dl,
-                        aiofiles.open(target_path, "wb") as f,
+                        aiofiles.open(f"{target_path}/{task.identifier}.nc", "wb") as f,
                     ):
                         async for chunk in dl.content.iter_chunked(1024):
                             await f.write(chunk)

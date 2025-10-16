@@ -25,6 +25,7 @@ class CDSTask:
     url: str
     headers: dict
     session: object
+    identifier: str
 
 
 @dataclass
@@ -37,7 +38,7 @@ class CDSConfig:
 
 class CDSAPIClient:
     def __init__(
-        self, client, download_dir: str = "./data/raw", config: CDSConfig = None
+        self, client, config: CDSConfig, download_dir: str = "./data/raw/cds",
     ):
         self._timeout = TIMEOUT
         self.client = client
@@ -75,9 +76,8 @@ class CDSAPIClient:
                 url=remote.url,
                 headers=remote.headers,
                 session=remote.session,
+                identifier=f"era5_{year}_{month}"
             )
-            task = self.client.retrieve(self.config.dataset, request)  # , target)
-            return task
         except requests.exceptions.HTTPError as e:
             if e.response is not None and e.response.status_code == 403:
                 logger.error(
