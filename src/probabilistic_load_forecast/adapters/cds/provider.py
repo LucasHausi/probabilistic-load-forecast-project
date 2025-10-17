@@ -119,10 +119,6 @@ class CDSDataProvider:
 
         cds_tasks = []
 
-        # Possible UTC conversion here
-        start = utils.to_utc(start)
-        end = utils.to_utc(end)
-
         timeframes = self._get_cds_timeframes(start, end)
 
         for timeframe in timeframes:

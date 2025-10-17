@@ -2,6 +2,7 @@ import geopandas as gpd
 import xarray as xr
 import pandas as pd
 import regionmask
+from probabilistic_load_forecast.adapters import utils
 
 class CreateCDSCountryAverages:
     def __init__(self, cds_repo, db_repo):
@@ -11,6 +12,7 @@ class CreateCDSCountryAverages:
         self.db_repo = db_repo
 
     def __call__(self, start, end):
+
         # 1. Fetch dataset lazily
         ds: xr.Dataset = self.cds_repo.get(start, end)
 
@@ -25,20 +27,28 @@ class CreateCDSCountryAverages:
         """Aggregate variable means per country, per time step."""
 
         # Define the country mask using regionmask
-        ne_countries = regionmask.defined_regions.natural_earth_v5_0_0.countries_110
-        austria = ne_countries["Austria"]
+        ne_countries = regionmask.defined_regions.natural_earth_v5_0_0.countries_10
+        austria_id = ne_countries.map_keys("Austria")
+        mask = ne_countries.mask(ds["longitude"], ds["latitude"])
+        
 
-        # Create a mask matching your dataset grid
-        mask = austria.mask(ds, lon_name="longitude", lat_name="latitude")
-
-        # Apply mask to the dataset
-        masked = ds.where(mask == 0)  # region 0 = Austria
+        #  Apply mask to the dataset
+        austria_mask = mask == austria_id
+        masked = ds.where(austria_mask)
+        print(ds)
 
         # Compute the mean over spatial dims
         mean_ds = masked.mean(dim=["latitude", "longitude"])
 
         # Convert to DataFrame for DB
-        df = mean_ds.to_dataframe().reset_index()
+        df = mean_ds.to_dataframe()
         df["country"] = "Austria"
 
         return df
+
+class GetERA5DataFromCDSStore():
+    def __init__(self, provider):
+        self.provider = provider
+
+    def __call__(self, start, end):
+        return self.provider.get_data(start, end)

@@ -4,8 +4,8 @@ This module currently orchestrates the logic for a simple POC
 
 import os
 import logging
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
+# from zoneinfo import ZoneInfo
 
 import cdsapi
 from dotenv import load_dotenv
@@ -24,6 +24,8 @@ from probabilistic_load_forecast.adapters.db import PostgreRepository
 from probabilistic_load_forecast.application.services import (
     FetchAndStoreMeasurements,
     GetActualLoadData,
+    CreateCDSCountryAverages,
+    GetERA5DataFromCDSStore
 )
 
 from probabilistic_load_forecast.adapters.cds import (
@@ -31,6 +33,7 @@ from probabilistic_load_forecast.adapters.cds import (
     CDSConfig,
     CDSDataProvider,
     CDSMapper,
+    FileRepository
 )
 
 logging.basicConfig(
@@ -77,39 +80,54 @@ def main():
         )
         cds_config = CDSConfig(
             dataset="reanalysis-era5-land",
-            variable=["2m_temperature", "snow_cover", "surface_net_solar_radiation"],
-            area=[49.03, 9.5, 46.35, 17.17],  # Bounding box for austria
+            variable=[
+                "2m_temperature",
+                "surface_solar_radiation_downwards",
+                "10m_u_component_of_wind",
+                "10m_v_component_of_wind",
+                "total_precipitation",
+            ],
+            area=[49.05, 9.5, 46.35, 17.17],  # Bounding box for austria
             field_limit=12000,
         )
         cds_api_client = CDSAPIClient(client=cds_client, config=cds_config)
         cds_mapper = CDSMapper()
-        cds_repo = CDSDataProvider(fetcher=cds_api_client, mapper=cds_mapper)
+        cds_provider = CDSDataProvider(fetcher=cds_api_client, mapper=cds_mapper)
 
         # ----------------------------------------------------------------
         #                    Testing the CDS Fetching
         # ----------------------------------------------------------------
-        # area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
+        start = datetime(2018, 11, 1, 0, 0, tzinfo=timezone.utc)
+        end = datetime(2018, 11, 2, 0, 0, tzinfo=timezone.utc)
+        usecase_get_data_from_cds = GetERA5DataFromCDSStore(cds_provider)
+        usecase_get_data_from_cds(start, end)
 
-        # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        # end_local = datetime(2018, 12, 31, 0, 0, tzinfo=area_tz)
-        # cds_repo.get_data(start=start_local, end=end_local)
+        # ----------------------------------------------------------------
+        #                    Testing the CDS File Repo
+        # ----------------------------------------------------------------
+
+        # cds_file_repo = FileRepository()
+        # usecase = CreateCDSCountryAverages(cds_file_repo, None)
+        # start = datetime(2018, 10, 31, 0, 0, tzinfo=timezone.utc)
+        # end = datetime(2018, 10, 31, 23, 59, tzinfo=timezone.utc)
+        # print(usecase(start, end))
 
         # ----------------------------------------------------------------
         #                    Testing the ENTSOE Fetching
         # ----------------------------------------------------------------
 
-        area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
+        # area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
 
-        # use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)
+        # # use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)
+        # # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
+        # # end_local = datetime.now(area_tz)
+        # # results = use_case(start_local, end_local)
+        # # print(results)
+
+        # use_case = GetActualLoadData(postgres_repo)
         # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        # end_local = datetime.now(area_tz)
-        # results = use_case(start_local, end_local)
-        # print(results)
-
-        use_case = GetActualLoadData(postgres_repo)
-        start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        end_local = datetime(2018, 10, 1, 1, 7, tzinfo=area_tz)
-        print(use_case(start_local, end_local))
+        # end_local = datetime(2018, 10, 1, 0, 16, tzinfo=area_tz)
+        # print(use_case(start_local, end_local))
 
     else:
         raise FileNotFoundError(

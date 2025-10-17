@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import pytest
 from unittest.mock import Mock
-from datetime import datetime
 from probabilistic_load_forecast.adapters.cds.provider import (
     CDSTimeFrame,
     CDSDataProvider,
