@@ -1,3 +1,6 @@
-from .repository import PostgreRepository
+from .repository import EntsoePostgreRepository, Era5PostgreRepository
 
-__all__ = ["PostgreRepository"]
+__all__ = [
+    "EntsoePostgreRepository",
+    "Era5PostgreRepository",
+    ]

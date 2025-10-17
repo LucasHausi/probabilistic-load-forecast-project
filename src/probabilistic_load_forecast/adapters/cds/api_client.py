@@ -38,7 +38,10 @@ class CDSConfig:
 
 class CDSAPIClient:
     def __init__(
-        self, client, config: CDSConfig, download_dir: str = "./data/raw/cds",
+        self,
+        client,
+        config: CDSConfig,
+        download_dir: str = "./data/raw/cds",
     ):
         self._timeout = TIMEOUT
         self.client = client
@@ -52,7 +55,6 @@ class CDSAPIClient:
         month: str,
         day: List[str],
         time: List[str],
-        # filename: str,
         download_format: str = "unarchived",
         data_format: str = "netcdf",
     ) -> CDSTask:
@@ -69,14 +71,13 @@ class CDSAPIClient:
             "area": self.config.area,
         }
 
-        # target = self.download_dir / filename
         try:
             remote = self.client.retrieve(self.config.dataset, request)
             return CDSTask(
                 url=remote.url,
                 headers=remote.headers,
                 session=remote.session,
-                identifier=f"era5_{year}_{month}"
+                identifier=f"era5_{year}_{month}",
             )
         except requests.exceptions.HTTPError as e:
             if e.response is not None and e.response.status_code == 403:

@@ -1,10 +1,11 @@
 from typing import List
 import psycopg
-from probabilistic_load_forecast.domain.model import LoadTimeseries, LoadMeasurement
 import pandas as pd
+from psycopg import sql
 
+from probabilistic_load_forecast.domain.model import LoadTimeseries, LoadMeasurement
 
-class PostgreRepository:
+class EntsoePostgreRepository:
     def __init__(self, dsn: str):
         self.dsn = dsn
 
@@ -40,4 +41,60 @@ class PostgreRepository:
                         SET load_mw = EXCLUDED.load_mw
                         """,
                     [(m.start_ts, m.end_ts, m.load_mw) for m in measurements],
+                )
+
+
+class Era5PostgreRepository:
+    def __init__(self, dsn: str):
+        self.dsn = dsn
+
+    def _create_table(
+        self, tablename: str, cur: psycopg.Cursor, schema: str = "public"
+    ):
+        cur.execute(
+            sql.SQL(
+                """
+                CREATE TABLE IF NOT EXISTS {} (
+                valid_time TIMESTAMPTZ PRIMARY KEY,
+                value DOUBLE PRECISION NOT NULL,
+                stat TEXT NOT NULL CHECK(stat IN('sum', 'instant')),
+                interval_seconds INTEGER NOT NULL DEFAULT 3600
+                );
+            """
+            ).format(sql.Identifier(schema, tablename))
+        )
+
+    def add(
+        self,
+        variable,
+        df: pd.DataFrame,
+        country_code,
+        stat,
+        interval_seconds=None,
+        schema: str = "public",
+    ):
+        tablename = f"{variable}_country_avg_{country_code}"
+        interval_seconds = interval_seconds or 3600
+
+        with psycopg.connect(self.dsn) as con:
+            with con.cursor() as cur:
+                # Create Table if not exists
+                self._create_table(tablename, cur)
+
+                insert_sql = sql.SQL(
+                    """
+                    INSERT INTO {} (valid_time, value, stat, interval_seconds) VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (valid_time) DO UPDATE SET
+                        value = EXCLUDED.value,
+                        stat = EXCLUDED.stat,
+                        interval_seconds = EXCLUDE.interval_seconds;
+                """
+                ).format(sql.Identifier(schema, tablename))
+
+                cur.executemany(
+                    insert_sql,
+                    (
+                        (row.valid_time, row.value, stat, interval_seconds)
+                        for row in df.itertuples()
+                    ),
                 )

@@ -69,8 +69,7 @@ class CDSDataProvider:
         timeout = aiohttp.ClientTimeout(total=600)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             tasks = [
-                self._poll_one(session, task, "./data/raw/cds")
-                for task in cds_tasks
+                self._poll_one(session, task, "./data/raw/cds") for task in cds_tasks
             ]
             results = await asyncio.gather(*tasks)
             return results

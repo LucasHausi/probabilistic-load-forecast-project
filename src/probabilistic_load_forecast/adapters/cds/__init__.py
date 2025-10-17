@@ -1,7 +1,7 @@
 from .api_client import CDSAPIClient, CDSConfig, CDSTask
 from .provider import CDSDataProvider
 from .mapper import CDSMapper
-from .repository import FileRepository
+from .file_repository import FileRepository
 
 __all__ = [
     "CDSAPIClient",
@@ -9,5 +9,5 @@ __all__ = [
     "CDSDataProvider",
     "CDSMapper",
     "CDSTask",
-    "FileRepository",
+    "FileRepository"
 ]
