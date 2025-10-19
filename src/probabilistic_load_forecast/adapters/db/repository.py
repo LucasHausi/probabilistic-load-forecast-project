@@ -87,14 +87,14 @@ class Era5PostgreRepository:
                     ON CONFLICT (valid_time) DO UPDATE SET
                         value = EXCLUDED.value,
                         stat = EXCLUDED.stat,
-                        interval_seconds = EXCLUDE.interval_seconds;
+                        interval_seconds = EXCLUDED.interval_seconds;
                 """
                 ).format(sql.Identifier(schema, tablename))
 
                 cur.executemany(
                     insert_sql,
                     (
-                        (row.valid_time, row.value, stat, interval_seconds)
+                        (row.Index, row.value, stat, interval_seconds)
                         for row in df.itertuples()
                     ),
                 )

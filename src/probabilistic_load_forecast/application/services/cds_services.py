@@ -1,8 +1,18 @@
+from typing import List
 import geopandas as gpd
 import xarray as xr
 import pandas as pd
 import regionmask
 from probabilistic_load_forecast.adapters import utils
+
+STAT_BY_VAR = {
+    "ssrd": "sum",      # J/m² over (t-1h, t]
+    "tp": "sum",        # if you include precipitation
+    "t2m": "instant",
+    "u10": "instant",
+    "v10": "instant",
+    # "ssrd_wm2": "mean",  # if you store W/m² (avg power over the hour)
+}
 
 class NoUniqueCountry(Exception):
     """Raised when there is more then one country data in a CDS NetCDF."""
@@ -35,10 +45,19 @@ class CreateCDSCountryAverages:
 
         # Store results
         for col_label, content in era5_variables_df.items():
+            content.name = "value" 
             sub_df = pd.DataFrame(data=content, index=era5_variables_df.index)
             print(sub_df)
-            self.db_repo.add(variable=col_label, df=sub_df, stat="instant", country_code=norm_country_code)
-            break
+            self.db_repo.add(variable=col_label, df=sub_df, stat=STAT_BY_VAR.get(col_label, "instant"), country_code=norm_country_code)
+
+    def _convert_accumulated_to_hourly(self, ds: xr.Dataset, variables: List[str]) -> xr.Dataset:
+        for variable in variables:
+            acc = ds[variable]
+            diff_array = acc.diff("valid_time")
+            variable_hourly = diff_array.where(diff_array >= 0, 0.0)
+            variable_hourly = variable_hourly.assign_coords(valid_time=acc.valid_time[1:])
+            ds[variable] = variable_hourly
+        return ds
 
     def _compute_country_averages(self, ds: xr.Dataset) -> pd.DataFrame:
         """Aggregate variable means per country, per time step."""
@@ -49,13 +68,14 @@ class CreateCDSCountryAverages:
         mask = ne_countries.mask(ds["longitude"], ds["latitude"])
         
 
-        #  Apply mask to the dataset
+        # Apply mask to the dataset
         austria_mask = mask == austria_id
         masked = ds.where(austria_mask)
-        print(ds)
 
         # Compute the mean over spatial dims
         mean_ds = masked.mean(dim=["latitude", "longitude"])
+
+        mean_ds_hourly = self._convert_accumulated_to_hourly(mean_ds, ["ssrd", "tp"])
 
         # Convert to DataFrame for DB
         df = mean_ds.to_dataframe()
