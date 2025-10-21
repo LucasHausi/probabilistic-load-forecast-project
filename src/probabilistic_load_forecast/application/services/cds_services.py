@@ -1,4 +1,5 @@
-import geopandas as gpd
+"""Services for handling CDS data."""
+
 import xarray as xr
 import pandas as pd
 import regionmask
@@ -19,6 +20,9 @@ class NoUniqueCountry(Exception):
 
 
 class CreateCDSCountryAverages:
+    """Fetches ERA5 data from CDS repository, computes country averages,
+    and stores them into a database."""
+
     def __init__(self, cds_repo, db_repo):
         """Fetches and computes the country averages for ERA5 variables
         and stores them into a database."""
@@ -96,6 +100,8 @@ class CreateCDSCountryAverages:
 
 
 class GetERA5DataFromCDSStore:
+    """Service to get ERA5 data from CDS data provider."""
+
     def __init__(self, provider):
         self.provider = provider
 

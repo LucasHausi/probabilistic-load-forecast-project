@@ -10,12 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class EntsoeAPIClient:
+    """Client to interact with the ENTSO-E API."""
+
     def __init__(self, endpoint, security_token):
         self._endpoint = endpoint
         self._security_token = security_token
         self._timeout = TIMEOUT
 
     def fetch_load_data(self, params):
+        """Fetch load data from ENTSO-E API with given parameters."""
         params["securityToken"] = self._security_token
         try:
             response = requests.get(

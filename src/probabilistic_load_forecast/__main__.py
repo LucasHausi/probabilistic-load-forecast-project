@@ -2,7 +2,6 @@
 This module currently orchestrates the logic for a simple POC
 """
 
-import os
 import logging
 from datetime import datetime, timezone
 
@@ -134,7 +133,7 @@ def main():
 
     else:
         raise FileNotFoundError(
-            "Could not load .env file." "Please ensure it exists in the project root."
+            "Could not load .env file. Please ensure it exists in the project root."
         )
 
 

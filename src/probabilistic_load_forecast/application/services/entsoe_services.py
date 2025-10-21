@@ -25,6 +25,8 @@ class FetchAndStoreMeasurements:
 
 
 class GetActualLoadData:
+    """Use case that retrieves actual load data from a repository."""
+
     def __init__(self, repo):
         self.repo = repo
 

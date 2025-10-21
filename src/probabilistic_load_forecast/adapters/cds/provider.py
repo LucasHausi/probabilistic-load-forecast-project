@@ -1,14 +1,17 @@
+"""CDS Data Provider for fetching and downloading datasets."""
+
+import random
+import logging
+import time
 from typing import List
 from datetime import datetime, timedelta
 import calendar
-from probabilistic_load_forecast.adapters.cds import CDSTask
 from dataclasses import dataclass
 import asyncio
 import aiohttp
 import aiofiles
-import random
-import logging
-import time
+
+from probabilistic_load_forecast.adapters.cds import CDSTask
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -16,6 +19,8 @@ logger.setLevel(logging.INFO)
 
 @dataclass(frozen=True)
 class CDSTimeFrame:
+    """A timeframe for CDS data requests."""
+
     start: datetime
     end: datetime
 
@@ -28,6 +33,7 @@ class CDSTimeFrame:
             raise ValueError("The Timeframe is only allowed to be maximally a month")
 
     def to_dict(self) -> dict:
+        """Convert the timeframe to a CDS-compatible dictionary."""
         return {
             "year": f"{self.start.year}",
             "month": f"{self.start.month:02d}",
@@ -37,6 +43,8 @@ class CDSTimeFrame:
 
 
 class CDSDataProvider:
+    """A data provider to fetch and download CDS datasets."""
+
     def __init__(self, fetcher):
         self.fetcher = fetcher
 
@@ -135,7 +143,7 @@ class CDSDataProvider:
         raise TimeoutError(f"Polling timed out after {max_retries} retries")
 
     def get_data(self, start, end, **kwargs):
-
+        """Fetch and download CDS data for the given time range."""
         cds_tasks = []
 
         timeframes = self._get_cds_timeframes(start, end)
@@ -164,10 +172,3 @@ class CDSDataProvider:
         downloaded_paths = asyncio.run(self._poll_and_download(cds_tasks))
 
         return downloaded_paths
-
-
-class InMemoryCDSDataProvider:
-    def __init__(self, paths):
-        self.paths = paths
-
-    def retrieve(self): ...

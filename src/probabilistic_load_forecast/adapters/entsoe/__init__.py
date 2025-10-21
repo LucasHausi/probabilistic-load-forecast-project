@@ -1,3 +1,7 @@
+"""ENTSO-E Adapter Module:
+This module provides classes and functions to interact with
+the ENTSO-E API for probabilistic load forecasting."""
+
 from .provider import EntsoeDataProvider
 from .fetcher import EntsoeFetcher
 from .mapper import XmlLoadMapper

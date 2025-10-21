@@ -1,13 +1,17 @@
+"""File-based repository for storing and retrieving CDS NetCDF datasets."""
+
 from typing import List
-import xarray as xr
 from glob import glob
 import os
+import xarray as xr
 
 
 from probabilistic_load_forecast.adapters import utils
 
 
 class FileRepository:
+    """A file-based repository for CDS NetCDF datasets."""
+
     def __init__(self, path: str = "data/raw/cds", pattern: str = "*.nc"):
         self.path = path
         self.pattern = pattern
@@ -39,8 +43,6 @@ class FileRepository:
 
         subset = dataset.sel(valid_time=slice(start_no_tz, end_no_tz))
         return subset
-
-    def add(self, file_paths: List[str]): ...
 
     def list(self) -> List[str]:
         """List available NetCDF files in the repository."""

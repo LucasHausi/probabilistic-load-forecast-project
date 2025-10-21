@@ -22,6 +22,8 @@ class CDSLicenseError(CDSDataUnavailable):
 
 @dataclass
 class CDSTask:
+    """A task representing a CDS data fetch."""
+
     url: str
     headers: dict
     session: object
@@ -30,6 +32,8 @@ class CDSTask:
 
 @dataclass
 class CDSConfig:
+    """Configuration for CDS API client."""
+
     dataset: str
     variable: List[str]
     area: List[float]
@@ -37,6 +41,8 @@ class CDSConfig:
 
 
 class CDSAPIClient:
+    """Client to interact with the CDS API."""
+
     def __init__(
         self,
         client,
@@ -58,7 +64,7 @@ class CDSAPIClient:
         download_format: str = "unarchived",
         data_format: str = "netcdf",
     ) -> CDSTask:
-
+        """Fetches data from the CDS API for the given parameters."""
         request = {
             "dataset": self.config.dataset,
             "variable": self.config.variable,

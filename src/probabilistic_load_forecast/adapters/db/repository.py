@@ -1,3 +1,5 @@
+"""PostgreSQL repository implementations for Entsoe and Era5 data."""
+
 from typing import List
 import psycopg
 import pandas as pd
@@ -7,10 +9,13 @@ from probabilistic_load_forecast.domain.model import LoadTimeseries, LoadMeasure
 
 
 class EntsoePostgreRepository:
+    """PostgreSQL repository for actual load data from ENTSO-E."""
+
     def __init__(self, dsn: str):
         self.dsn = dsn
 
     def get(self, start, end) -> LoadTimeseries:
+        """Retrieve actual load data between start and end timestamps."""
         query = """
         SELECT start_ts, load_mw
         FROM actual_total_load_at
@@ -33,6 +38,7 @@ class EntsoePostgreRepository:
         return LoadTimeseries(data=s, bidding_zone="BZN|AT")
 
     def add(self, measurements: List[LoadMeasurement]) -> None:
+        """Add load measurements to the repository."""
         with psycopg.connect(self.dsn) as conn:
             with conn.cursor() as cur:
                 cur.executemany(
@@ -46,6 +52,8 @@ class EntsoePostgreRepository:
 
 
 class Era5PostgreRepository:
+    """PostgreSQL repository for storing ERA5 country averages."""
+
     def __init__(self, dsn: str):
         self.dsn = dsn
 
@@ -74,6 +82,7 @@ class Era5PostgreRepository:
         interval_seconds=None,
         schema: str = "public",
     ):
+        """Add ERA5 country average data to the repository."""
         tablename = f"{variable}_country_avg_{country_code}"
         interval_seconds = interval_seconds or 3600
 

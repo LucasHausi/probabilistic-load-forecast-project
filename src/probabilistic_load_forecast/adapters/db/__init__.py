@@ -1,3 +1,5 @@
+"""Database repository adapters package."""
+
 from .repository import EntsoePostgreRepository, Era5PostgreRepository
 
 __all__ = [

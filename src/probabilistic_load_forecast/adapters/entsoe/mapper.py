@@ -1,3 +1,5 @@
+"""Mapper for ENTSO-E XML load data to LoadMeasurement objects."""
+
 from datetime import datetime, timedelta
 from typing import List
 from lxml import etree
@@ -5,8 +7,12 @@ from probabilistic_load_forecast.domain.model import LoadMeasurement
 
 
 class XmlLoadMapper:
+    """Mapper to convert ENTSO-E XML load data into LoadMeasurement objects."""
+
     @staticmethod
     def map(xml: str) -> List[LoadMeasurement]:
+        """Map ENTSO-E XML load data to a list of LoadMeasurement objects."""
+
         ns = {"ns": "urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0"}
         tree = etree.fromstring(xml.encode())  # pylint: disable=c-extension-no-member
         # Find Period

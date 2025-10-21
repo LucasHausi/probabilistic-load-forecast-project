@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime
-import xarray
 import pandas as pd
 
 
@@ -23,22 +22,10 @@ class LoadMeasurement:
 
 @dataclass
 class LoadTimeseries:
+    """Domain entity representing a timeseries of load measurements."""
+
     data: pd.Series
     bidding_zone: str
-
-
-@dataclass(frozen=True)
-class AreaBoundingBox:
-    north: float
-    south: float
-    west: float
-    east: float
-
-
-@dataclass(frozen=True)
-class SpacialTimeseries:
-    data: xarray.Dataset
-    area: AreaBoundingBox
 
 
 class DataProvider(ABC):
