@@ -1,11 +1,10 @@
-from typing import List
 import geopandas as gpd
 import xarray as xr
 import pandas as pd
 import regionmask
 from probabilistic_load_forecast.adapters import utils
 
-STAT_BY_VAR = {
+STAT_BY_VAR: dict[str, str] = {
     "ssrd": "sum",      # J/m² over (t-1h, t]
     "tp": "sum",        # if you include precipitation
     "t2m": "instant",
@@ -47,10 +46,10 @@ class CreateCDSCountryAverages:
         for col_label, content in era5_variables_df.items():
             content.name = "value" 
             sub_df = pd.DataFrame(data=content, index=era5_variables_df.index)
-            print(sub_df)
+
             self.db_repo.add(variable=col_label, df=sub_df, stat=STAT_BY_VAR.get(col_label, "instant"), country_code=norm_country_code)
 
-    def _convert_accumulated_to_hourly(self, ds: xr.Dataset, variables: List[str]) -> xr.Dataset:
+    def _convert_accumulated_to_hourly(self, ds: xr.Dataset, variables: list[str]) -> xr.Dataset:
         for variable in variables:
             acc = ds[variable]
             diff_array = acc.diff("valid_time")
@@ -78,7 +77,7 @@ class CreateCDSCountryAverages:
         mean_ds_hourly = self._convert_accumulated_to_hourly(mean_ds, ["ssrd", "tp"])
 
         # Convert to DataFrame for DB
-        df = mean_ds.to_dataframe()
+        df = mean_ds_hourly.to_dataframe()
         df["country"] = "Austria"
 
         return df
