@@ -3,6 +3,7 @@ services:
     image: postgres:17.6
     restart: always
     environment:
+      POSTGRES_DB: plf 
       POSTGRES_PASSWORD: secret
     ports:
       - "5432:5432"
