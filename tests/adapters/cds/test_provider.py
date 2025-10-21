@@ -40,7 +40,7 @@ def test_config_exeeds_limit(variables, start, end, limit, expected):
     mock_fetcher = Mock()
     mock_fetcher.config = cfg
 
-    provider = CDSDataProvider(fetcher=mock_fetcher, mapper=Mock())
+    provider = CDSDataProvider(fetcher=mock_fetcher)
 
     tf = CDSTimeFrame(start, end)
     result = provider._exceeds_limit(tf)
@@ -77,8 +77,7 @@ def test_config_exeeds_limit(variables, start, end, limit, expected):
 )
 def test_provider_calculates_correct_timeframes(start, end, expected):
     fetcher = Mock()
-    mapper = Mock()
-    provider = CDSDataProvider(fetcher, mapper)
+    provider = CDSDataProvider(fetcher)
 
     timeframes = provider._get_cds_timeframes(start, end)
     print(timeframes)
