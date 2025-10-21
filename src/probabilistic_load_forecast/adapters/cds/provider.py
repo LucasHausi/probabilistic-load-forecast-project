@@ -9,8 +9,10 @@ import aiofiles
 import random
 import logging
 import time
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 @dataclass(frozen=True)
 class CDSTimeFrame:
@@ -66,7 +68,7 @@ class CDSDataProvider:
 
     async def _poll_and_download(self, cds_tasks: List[CDSTask]) -> List[str]:
         timeout = aiohttp.ClientTimeout(total=None)
-        sem = asyncio.Semaphore(3) # only 3 at a time will call the api
+        sem = asyncio.Semaphore(3)  # only 3 at a time will call the api
         async with aiohttp.ClientSession(timeout=timeout) as session:
 
             async def limited_poll(task):
@@ -88,7 +90,9 @@ class CDSDataProvider:
                 response = await resp.json()
                 state = response.get("status", "failed")
                 if state == "successful":
-                    logger.info("Task %s succeeded - downloading file.", task.identifier)
+                    logger.info(
+                        "Task %s succeeded - downloading file.", task.identifier
+                    )
                     links = response.get("links", [])
                     results_link = next(
                         (l["href"] for l in links if l["rel"] == "results"), None
@@ -121,13 +125,14 @@ class CDSDataProvider:
                 elif state == "failed":
                     raise RuntimeError(f"Task failed: {response}")
             retries += 1
-            delay = 2** (retries + 6) + random.uniform(2,10)  # eponential waiting
-            logger.warning("%s not ready yet — retrying in %.1fs", task.identifier, delay)
+            delay = 2 ** (retries + 6) + random.uniform(2, 10)  # eponential waiting
+            logger.warning(
+                "%s not ready yet — retrying in %.1fs", task.identifier, delay
+            )
             await asyncio.sleep(delay)
 
         logger.error("Task %s timed out after %s retries", task.identifier, max_retries)
         raise TimeoutError(f"Polling timed out after {max_retries} retries")
-
 
     def get_data(self, start, end, **kwargs):
 
@@ -138,7 +143,7 @@ class CDSDataProvider:
         batch_size = 10
         batch_delay = 25
         for i in range(0, len(timeframes), batch_size):
-            batch = timeframes[i : i+batch_size]
+            batch = timeframes[i : i + batch_size]
             for timeframe in batch:
                 datetime_cds_format = timeframe.to_dict()
 

@@ -5,6 +5,7 @@ This module currently orchestrates the logic for a simple POC
 import os
 import logging
 from datetime import datetime, timezone
+
 # from zoneinfo import ZoneInfo
 
 import cdsapi
@@ -21,21 +22,20 @@ from probabilistic_load_forecast.adapters.entsoe import (
 
 from probabilistic_load_forecast.adapters.db import (
     EntsoePostgreRepository,
-    Era5PostgreRepository
+    Era5PostgreRepository,
 )
 
 from probabilistic_load_forecast.application.services import (
     FetchAndStoreMeasurements,
     GetActualLoadData,
     CreateCDSCountryAverages,
-    GetERA5DataFromCDSStore
+    GetERA5DataFromCDSStore,
 )
 
 from probabilistic_load_forecast.adapters.cds import (
     CDSAPIClient,
     CDSConfig,
     CDSDataProvider,
-    CDSMapper,
     FileRepository,
 )
 
@@ -94,27 +94,26 @@ def main():
             field_limit=12000,
         )
         cds_api_client = CDSAPIClient(client=cds_client, config=cds_config)
-        cds_mapper = CDSMapper()
-        cds_provider = CDSDataProvider(fetcher=cds_api_client, mapper=cds_mapper)
+        cds_provider = CDSDataProvider(fetcher=cds_api_client)
 
         # ----------------------------------------------------------------
         #                    Testing the CDS Fetching
         # ----------------------------------------------------------------
-        # start = datetime(2018, 11, 1, 0, 0, tzinfo=timezone.utc)
-        # end = datetime(2018, 11, 2, 0, 0, tzinfo=timezone.utc)
-        # usecase_get_data_from_cds = GetERA5DataFromCDSStore(cds_provider)
-        # usecase_get_data_from_cds(start, end)
+        start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
+        end = datetime(2019, 3, 11, 0, 0, tzinfo=timezone.utc)
+        usecase_get_data_from_cds = GetERA5DataFromCDSStore(cds_provider)
+        usecase_get_data_from_cds(start, end)
 
         # ----------------------------------------------------------------
         #                    Testing the CDS File Repo
         # ----------------------------------------------------------------
 
-        cds_file_repo = FileRepository()
-        cds_postgre_repo = Era5PostgreRepository(config.get_postgre_uri())
-        usecase = CreateCDSCountryAverages(cds_file_repo, cds_postgre_repo)
-        start = datetime(2018, 10, 31, 0, 0, tzinfo=timezone.utc)
-        end = datetime(2018, 11, 2, 3, 0, tzinfo=timezone.utc)
-        print(usecase(start, end))
+        # cds_file_repo = FileRepository()
+        # cds_postgre_repo = Era5PostgreRepository(config.get_postgre_uri())
+        # usecase = CreateCDSCountryAverages(cds_file_repo, cds_postgre_repo)
+        # start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
+        # end = datetime(2025, 10, 11, 0, 0, tzinfo=timezone.utc)
+        # print(usecase(start, end))
 
         # ----------------------------------------------------------------
         #                    Testing the ENTSOE Fetching

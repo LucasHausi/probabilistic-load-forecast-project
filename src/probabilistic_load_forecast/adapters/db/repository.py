@@ -5,6 +5,7 @@ from psycopg import sql
 
 from probabilistic_load_forecast.domain.model import LoadTimeseries, LoadMeasurement
 
+
 class EntsoePostgreRepository:
     def __init__(self, dsn: str):
         self.dsn = dsn
