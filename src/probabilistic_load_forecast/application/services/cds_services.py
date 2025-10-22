@@ -1,17 +1,17 @@
 """Services for handling CDS data."""
 
+from datetime import datetime
 import xarray as xr
 import pandas as pd
 import regionmask
 from probabilistic_load_forecast.adapters import utils
 
-STAT_BY_VAR: dict[str, str] = {
+STAT_BY_VAR: dict = {
     "ssrd": "sum",  # J/m² over (t-1h, t]
-    "tp": "sum",  # if you include precipitation
+    "tp": "sum",  # (t-1h, t]
     "t2m": "instant",
     "u10": "instant",
     "v10": "instant",
-    # "ssrd_wm2": "mean",  # if you store W/m² (avg power over the hour)
 }
 
 
@@ -107,3 +107,41 @@ class GetERA5DataFromCDSStore:
 
     def __call__(self, start, end):
         return self.provider.get_data(start, end)
+
+
+class GetERA5DataFromDB:
+    """Use case that retrieves actual load data from a repository."""
+
+    def __init__(self, repo):
+        self.repo = repo
+
+    def __call__(
+        self,
+        variables: list[str],
+        country_code: str,
+        start: datetime,
+        end: datetime,
+        schema: str = "public",
+    ) -> dict[str, pd.DataFrame]:
+        """
+        Fetch multiple time series datasets (one per variable) for a country.
+
+        Returns a dict: {variable_name: DataFrame}
+        """
+        results = {}
+        for variable in variables:
+            tablename = (
+                f"{variable}_country_avg_{utils.normalize_country(country_code)}"
+            )
+            try:
+                df = self.repo.get(
+                    start,
+                    end,
+                    tablename,
+                    schema=schema,
+                    stat=STAT_BY_VAR.get(variable, "instant"),
+                )
+                results[variable] = df
+            except Exception as e:
+                print(f"Could not fetch {variable}: {e}")
+        return results

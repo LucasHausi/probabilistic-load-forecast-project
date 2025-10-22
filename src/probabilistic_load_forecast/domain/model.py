@@ -24,8 +24,17 @@ class LoadMeasurement:
 class LoadTimeseries:
     """Domain entity representing a timeseries of load measurements."""
 
-    data: pd.Series
+    data: pd.DataFrame
     bidding_zone: str
+
+
+@dataclass
+class Era5Timeseries:
+    """Domain entity representing a timeseries of load measurements."""
+
+    data: pd.Series
+    variable_name: str
+    stat: str
 
 
 class DataProvider(ABC):

@@ -29,6 +29,7 @@ from probabilistic_load_forecast.application.services import (
     GetActualLoadData,
     CreateCDSCountryAverages,
     GetERA5DataFromCDSStore,
+    GetERA5DataFromDB,
 )
 
 from probabilistic_load_forecast.adapters.cds import (
@@ -98,38 +99,44 @@ def main():
         # ----------------------------------------------------------------
         #                    Testing the CDS Fetching
         # ----------------------------------------------------------------
-        start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
-        end = datetime(2019, 3, 11, 0, 0, tzinfo=timezone.utc)
-        usecase_get_data_from_cds = GetERA5DataFromCDSStore(cds_provider)
-        usecase_get_data_from_cds(start, end)
+        # start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
+        # end = datetime(2019, 3, 11, 0, 0, tzinfo=timezone.utc)
+        # usecase_get_data_from_cds = GetERA5DataFromCDSStore(cds_provider)
+        # usecase_get_data_from_cds(start, end)
 
         # ----------------------------------------------------------------
         #                    Testing the CDS File Repo
         # ----------------------------------------------------------------
 
         # cds_file_repo = FileRepository()
-        # cds_postgre_repo = Era5PostgreRepository(config.get_postgre_uri())
+        cds_postgre_repo = Era5PostgreRepository(config.get_postgre_uri())
         # usecase = CreateCDSCountryAverages(cds_file_repo, cds_postgre_repo)
-        # start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
-        # end = datetime(2025, 10, 11, 0, 0, tzinfo=timezone.utc)
+        start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
+        end = datetime(2025, 10, 11, 0, 0, tzinfo=timezone.utc)
         # print(usecase(start, end))
+
+        usecase = GetERA5DataFromDB(cds_postgre_repo)
+        result = usecase(
+            variables=["t2m", "u10", "v10", "ssrd", "tp"],
+            country_code="AT",
+            start=start,
+            end=end,
+        )
+        print(result)
 
         # ----------------------------------------------------------------
         #                    Testing the ENTSOE Fetching
         # ----------------------------------------------------------------
 
-        # area_tz = ZoneInfo(os.getenv("AREA_TZ_ENV", "Europe/Vienna"))
-
-        # # use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)
-        # # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        # # end_local = datetime.now(area_tz)
-        # # results = use_case(start_local, end_local)
-        # # print(results)
+        # use_case = FetchAndStoreMeasurements(entsoe_repo, postgres_repo)
+        # start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
+        # end = datetime.now(tz=timezone.utc)
+        # use_case(start, end)
 
         # use_case = GetActualLoadData(postgres_repo)
-        # start_local = datetime(2018, 10, 1, 0, 0, tzinfo=area_tz)
-        # end_local = datetime(2018, 10, 1, 0, 16, tzinfo=area_tz)
-        # print(use_case(start_local, end_local))
+        # start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
+        # end = datetime(2025, 10, 21, 9, 30, tzinfo=timezone.utc)
+        # print(use_case(start, end))
 
     else:
         raise FileNotFoundError(
