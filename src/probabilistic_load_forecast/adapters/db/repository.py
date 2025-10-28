@@ -1,6 +1,7 @@
 """PostgreSQL repository implementations for Entsoe and Era5 data."""
 
 from typing import List
+from datetime import timedelta
 import psycopg
 import pandas as pd
 from psycopg import sql
@@ -37,7 +38,7 @@ class EntsoePostgreRepository:
         query = """
         SELECT start_ts, load_mw
         FROM actual_total_load_at
-        WHERE start_ts < %s
+        WHERE start_ts <= %s
         AND end_ts > %s
         ORDER BY start_ts;
         """
@@ -148,6 +149,9 @@ class Era5PostgreRepository:
                     WHERE valid_time BETWEEN %s AND %s; 
                     """
                 ).format(sql.Identifier(schema, tablename))
+
+                if stat == "sum":
+                    end += timedelta(hours=1)
 
                 cur.execute(query=select_stmt, params=(start, end))
                 rows = cur.fetchall()
