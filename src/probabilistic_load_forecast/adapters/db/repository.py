@@ -98,7 +98,7 @@ class Era5PostgreRepository:
                 CREATE TABLE IF NOT EXISTS {} (
                 valid_time TIMESTAMPTZ PRIMARY KEY,
                 value DOUBLE PRECISION NOT NULL,
-                stat TEXT NOT NULL CHECK(stat IN('sum', 'instant')),
+                stat TEXT NOT NULL CHECK(stat IN('integrated_flux', 'instant')),
                 interval_seconds INTEGER NOT NULL DEFAULT 3600
                 );
             """
@@ -150,7 +150,7 @@ class Era5PostgreRepository:
                     """
                 ).format(sql.Identifier(schema, tablename))
 
-                if stat == "sum":
+                if stat == "integrated_flux":
                     end += timedelta(hours=1)
 
                 cur.execute(query=select_stmt, params=(start, end))
@@ -159,7 +159,7 @@ class Era5PostgreRepository:
                 df = pd.DataFrame(data=rows, columns=["valid_time", "value"])
                 df["valid_time"] = pd.to_datetime(df["valid_time"], utc=True)
 
-                if stat == "sum":
+                if stat == "integrated_flux":
                     df["valid_time"] = df["valid_time"] - pd.Timedelta(hours=1)
                     df["valid_time"] = (
                         df["valid_time"].dt.tz_convert(None).dt.to_period("h")

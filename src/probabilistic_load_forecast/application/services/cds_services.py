@@ -7,8 +7,8 @@ import regionmask
 from probabilistic_load_forecast.adapters import utils
 
 STAT_BY_VAR: dict = {
-    "ssrd": "sum",  # J/m² over (t-1h, t]
-    "tp": "sum",  # (t-1h, t]
+    "ssrd": "integrated_flux",  # J/m² over (t-1h, t]
+    "tp": "integrated_flux",  # (t-1h, t]
     "t2m": "instant",
     "u10": "instant",
     "v10": "instant",
@@ -47,6 +47,7 @@ class CreateCDSCountryAverages:
         country = averages_df.iloc[0]["country"]
         norm_country_code = utils.normalize_country(country)
 
+        
         # Remove non ERA5 variable columns
         era5_variables_df = averages_df.drop(columns=["number", "expver", "country"])
 
@@ -88,9 +89,10 @@ class CreateCDSCountryAverages:
         masked = ds.where(austria_mask)
 
         # Compute the mean over spatial dims
-        mean_ds = masked.mean(dim=["latitude", "longitude"])
-
-        mean_ds_hourly = self._convert_accumulated_to_hourly(mean_ds, ["ssrd", "tp"])
+        ds_proc = ds.copy()
+        ds_proc = self._convert_accumulated_to_hourly(ds_proc, ["ssrd", "tp"])
+        masked = ds_proc.where(austria_mask)
+        mean_ds_hourly = masked.mean(dim=["latitude", "longitude"])
 
         # Convert to DataFrame for DB
         df = mean_ds_hourly.to_dataframe()
