@@ -210,3 +210,6 @@ __marimo__/
 .pre-commit-config.yaml
 /data/raw/*
 !/data/raw/.gitkeep
+/data/processed/ml_data
+/data/images
+/notebooks/exports
