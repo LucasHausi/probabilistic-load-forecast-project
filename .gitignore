@@ -213,3 +213,4 @@ __marimo__/
 /data/processed/ml_data
 /data/images
 /notebooks/exports
+/mlartifacts
