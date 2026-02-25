@@ -214,3 +214,7 @@ __marimo__/
 /data/images
 /notebooks/exports
 /mlartifacts
+mlflow.db
+data_combined.parquet
+settings.json
+optuna_bayesian_lstm.db
