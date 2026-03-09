@@ -1,6 +1,0 @@
-requests
-pytest
-pylint
-lxml
-dotenv
-influxdb3-python
