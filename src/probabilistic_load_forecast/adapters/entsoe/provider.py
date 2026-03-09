@@ -1,7 +1,7 @@
 """Data provider adapter for ENTSO-E load data."""
 
 from itertools import chain
-from probabilistic_load_forecast.domain.model import DataProvider
+from probabilistic_load_forecast.application.ports import DataProvider
 
 
 class EntsoeDataProvider(DataProvider):

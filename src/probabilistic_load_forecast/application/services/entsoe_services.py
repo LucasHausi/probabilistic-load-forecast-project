@@ -2,10 +2,10 @@
 Application use case for fetching load measurements and persisting them.
 """
 
-from probabilistic_load_forecast.domain.model import DataProvider
+from probabilistic_load_forecast.application.ports import DataProvider
 
 
-class FetchAndStoreMeasurements:
+class ImportHistoricalLoadData:
     """
     Use case that fetches load measurements for a given time range
     and stores them in a repository.

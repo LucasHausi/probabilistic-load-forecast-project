@@ -25,7 +25,7 @@ from probabilistic_load_forecast.adapters.db import (
 )
 
 from probabilistic_load_forecast.application.services import (
-    FetchAndStoreMeasurements,
+    ImportHistoricalLoadData,
     GetActualLoadData,
     CreateCDSCountryAverages,
     GetERA5DataFromCDSStore,
