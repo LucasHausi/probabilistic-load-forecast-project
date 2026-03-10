@@ -1,6 +1,6 @@
 """Application service layer for probabilistic load forecasting."""
 
-from .entsoe_services import ImportHistoricalLoadData, GetActualLoadData
+from .entsoe_services import ImportHistoricalLoadData, GetActualLoadData, GetActualLoadDataFrame
 from .cds_services import (
     CreateCDSCountryAverages,
     GetERA5DataFromCDSStore,
@@ -13,4 +13,5 @@ __all__ = [
     "CreateCDSCountryAverages",
     "GetERA5DataFromCDSStore",
     "GetERA5DataFromDB",
+    "GetActualLoadDataFrame",
 ]

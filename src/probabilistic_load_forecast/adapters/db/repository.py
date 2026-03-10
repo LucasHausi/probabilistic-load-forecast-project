@@ -10,7 +10,11 @@ from datetime import datetime
 from probabilistic_load_forecast.domain.model import(
     LoadSeries, LoadMeasurement, BiddingZone, TimeInterval,
     Resolution
-) 
+)
+
+from probabilistic_load_forecast.domain.model import (
+    resolve_bidding_zone
+)
 
 
 class EntsoePostgreRepository:
@@ -30,7 +34,7 @@ class EntsoePostgreRepository:
                 end_ts timestamptz NOT NULL,
                 load_mw numeric(10, 2) NOT NULL,
                 created_at timestamp DEFAULT now() NULL,
-                zone_code varchar(10) DEFAULT 'BZN|AT'::character varying NULL,
+                zone_code varchar(30) DEFAULT '10YAT-APG------L'::character varying NULL,
                 CONSTRAINT unique_load_measurement_slot UNIQUE (start_ts, end_ts, zone_code)
             );
             """
@@ -48,23 +52,24 @@ class EntsoePostgreRepository:
         """Retrieve actual load data between start and end timestamps."""
         query = sql.SQL(
             """
-            SELECT start_ts, load_mw, zone_code
+            SELECT start_ts, end_ts, load_mw, zone_code
             FROM {}
+            WHERE zone_code = %s
             AND start_ts < %s
             AND end_ts > %s
             ORDER BY start_ts;
             """
-        ).format(sql.Identifier(schema, tablename)) # TODO: IMPLEMENT THIS IN POSTGRE: WHERE zone_code = %s
+        ).format(sql.Identifier(schema, tablename))
 
         
         with psycopg.connect(self.dsn) as con:
             with con.cursor() as cur:
-                cur.execute(query, (end, start))
+                cur.execute(query, (bidding_zone.eic_code, end, start))
                 rows = cur.fetchall()
 
         observations = tuple(
             LoadMeasurement(
-                bidding_zone=BiddingZone(code=zone_code),
+                bidding_zone= resolve_bidding_zone(zone_code),
                 interval=TimeInterval(start=start_ts, end=end_ts),
                 load_mw=float(load_mw),
             )
@@ -76,23 +81,11 @@ class EntsoePostgreRepository:
             resolution=Resolution.PT15M,
             observations=observations,
         )
-        # TODO: REMOVE old code
-        # df = pd.DataFrame(rows, columns=["start_ts", "actual_load_mw"])
-
-        # df["datetime"] = pd.to_datetime(df["start_ts"], errors="raise")
-        # df["actual_load_mw"] = pd.to_numeric(df["actual_load_mw"])
-
-        # df["period"] = (
-        #     df["datetime"].dt.tz_convert(None).dt.to_period("15min")
-        # )  # dropping the tz infromation before converting to a period
-        # df = df[["period","actual_load_mw"]]
-        # df = df.set_index("period")
+       
         
-        return LoadTimeseries(data=df, bidding_zone="BZN|AT")
-
     def add(
         self,
-        measurements: List[LoadMeasurement],
+        load_series: LoadSeries,
         schema: str = "public",
         tablename="actual_total_load_at",
     ) -> None:
@@ -100,7 +93,7 @@ class EntsoePostgreRepository:
 
         with psycopg.connect(self.dsn) as conn:
             with conn.cursor() as cur:
-                self._create_table(tablename, cur)
+                self._create_table(tablename, cur, schema)
                 cur.executemany(
                     sql.SQL(
                         """
@@ -109,7 +102,7 @@ class EntsoePostgreRepository:
                         SET load_mw = EXCLUDED.load_mw
                         """
                     ).format(sql.Identifier(schema, tablename)),
-                    [(m.start_ts, m.end_ts, m.load_mw) for m in measurements],
+                    [(m.interval.start, m.interval.end, m.load_mw) for m in load_series.observations],
                 )
 
 

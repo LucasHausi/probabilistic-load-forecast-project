@@ -2,8 +2,10 @@
 Application use case for fetching load measurements and persisting them.
 """
 
-from probabilistic_load_forecast.application.ports import DataProvider
+from typing import Any
 
+from probabilistic_load_forecast.application.ports import DataProvider
+from probabilistic_load_forecast.application.mappers.load_series import load_series_to_dataframe
 
 class ImportHistoricalLoadData:
     """
@@ -33,11 +35,12 @@ class GetActualLoadData:
     def __call__(self, start, end, bidding_zone):
         return self.repo.get(start, end, bidding_zone)
 
-class GetActualLoadDataFrame():
+class GetActualLoadDataFrame:
     """Use case that retrieves actual load data from a repository."""
 
     def __init__(self, repo):
         self.repo = repo
 
-    def __call__(self, start, end):
-        return self.repo.get(start, end)
+    def __call__(self, start, end, bidding_zone):
+        load_series = self.repo.get(start, end, bidding_zone)
+        return load_series_to_dataframe(load_series)

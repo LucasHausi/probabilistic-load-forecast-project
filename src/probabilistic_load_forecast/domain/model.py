@@ -6,6 +6,8 @@ from enum import StrEnum
 from dataclasses import dataclass
 from datetime import date, datetime
 
+from probabilistic_load_forecast.domain.exceptions import UnknownBiddingZoneError
+
 class Resolution(StrEnum):
     PT15M = "15min"
     PT1H = "1h"
@@ -140,3 +142,11 @@ BIDDING_ZONE_REGISTRY = {
         country_code="AT",
     ),
 }
+
+def resolve_bidding_zone(eic_code):
+    try:
+        return BIDDING_ZONE_REGISTRY[eic_code]
+    except KeyError as exc:
+        raise UnknownBiddingZoneError(
+            f"Unknown bidding zone code: {eic_code}"
+        ) from exc

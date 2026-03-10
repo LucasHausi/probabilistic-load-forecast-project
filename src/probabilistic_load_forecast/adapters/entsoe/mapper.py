@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import List
 from lxml import etree #type: ignore
 from probabilistic_load_forecast.domain.model import (
-    LoadMeasurement, TimeInterval, BIDDING_ZONE_REGISTRY
+    LoadMeasurement, TimeInterval, resolve_bidding_zone
 )
 
 
@@ -22,10 +22,6 @@ class XmlLoadMapper:
         start_str = period.find(".//ns:start", namespaces=ns).text
         resolution = period.find(".//ns:resolution", namespaces=ns).text
         bidding_zone_text = tree.find(".//ns:outBiddingZone_Domain.mRID", namespaces=ns).text
-
-        bidding_zone = BIDDING_ZONE_REGISTRY.get(bidding_zone_text)
-        if bidding_zone is None:
-            raise ValueError("bidding_zone_required")
         
         # Parse start time
         start_dt = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
@@ -44,7 +40,7 @@ class XmlLoadMapper:
 
             interval = TimeInterval(start_ts, end_ts)
             load_measure = LoadMeasurement(
-                bidding_zone=bidding_zone,
+                bidding_zone=resolve_bidding_zone(bidding_zone_text),
                 interval=interval,
                 load_mw=quantity,
             )
