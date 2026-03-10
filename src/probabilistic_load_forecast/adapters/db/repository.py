@@ -5,8 +5,12 @@ from datetime import timedelta
 import psycopg
 import pandas as pd
 from psycopg import sql
+from datetime import datetime
 
-from probabilistic_load_forecast.domain.model import LoadTimeseries, LoadMeasurement
+from probabilistic_load_forecast.domain.model import(
+    LoadSeries, LoadMeasurement, BiddingZone, TimeInterval,
+    Resolution
+) 
 
 
 class EntsoePostgreRepository:
@@ -33,30 +37,56 @@ class EntsoePostgreRepository:
             ).format(sql.Identifier(schema, tablename))
         )
 
-    def get(self, start, end) -> LoadTimeseries:
+    def get(
+        self,
+        start: datetime,
+        end: datetime,
+        bidding_zone: BiddingZone,
+        schema: str = "public",
+        tablename: str = "actual_total_load_at",
+    ) -> LoadSeries:
         """Retrieve actual load data between start and end timestamps."""
-        query = """
-        SELECT start_ts, load_mw
-        FROM actual_total_load_at
-        WHERE start_ts <= %s
-        AND end_ts > %s
-        ORDER BY start_ts;
-        """
+        query = sql.SQL(
+            """
+            SELECT start_ts, load_mw, zone_code
+            FROM {}
+            AND start_ts < %s
+            AND end_ts > %s
+            ORDER BY start_ts;
+            """
+        ).format(sql.Identifier(schema, tablename)) # TODO: IMPLEMENT THIS IN POSTGRE: WHERE zone_code = %s
+
+        
         with psycopg.connect(self.dsn) as con:
             with con.cursor() as cur:
                 cur.execute(query, (end, start))
                 rows = cur.fetchall()
 
-        df = pd.DataFrame(rows, columns=["start_ts", "actual_load_mw"])
+        observations = tuple(
+            LoadMeasurement(
+                bidding_zone=BiddingZone(code=zone_code),
+                interval=TimeInterval(start=start_ts, end=end_ts),
+                load_mw=float(load_mw),
+            )
+            for start_ts, end_ts, load_mw, zone_code in rows
+        )
 
-        df["datetime"] = pd.to_datetime(df["start_ts"], errors="raise")
-        df["actual_load_mw"] = pd.to_numeric(df["actual_load_mw"])
+        return LoadSeries(
+            bidding_zone=bidding_zone,
+            resolution=Resolution.PT15M,
+            observations=observations,
+        )
+        # TODO: REMOVE old code
+        # df = pd.DataFrame(rows, columns=["start_ts", "actual_load_mw"])
 
-        df["period"] = (
-            df["datetime"].dt.tz_convert(None).dt.to_period("15min")
-        )  # dropping the tz infromation before converting to a period
-        df = df[["period","actual_load_mw"]]
-        df = df.set_index("period")
+        # df["datetime"] = pd.to_datetime(df["start_ts"], errors="raise")
+        # df["actual_load_mw"] = pd.to_numeric(df["actual_load_mw"])
+
+        # df["period"] = (
+        #     df["datetime"].dt.tz_convert(None).dt.to_period("15min")
+        # )  # dropping the tz infromation before converting to a period
+        # df = df[["period","actual_load_mw"]]
+        # df = df.set_index("period")
         
         return LoadTimeseries(data=df, bidding_zone="BZN|AT")
 

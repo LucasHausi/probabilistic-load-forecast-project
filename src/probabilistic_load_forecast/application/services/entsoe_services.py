@@ -30,5 +30,14 @@ class GetActualLoadData:
     def __init__(self, repo):
         self.repo = repo
 
+    def __call__(self, start, end, bidding_zone):
+        return self.repo.get(start, end, bidding_zone)
+
+class GetActualLoadDataFrame():
+    """Use case that retrieves actual load data from a repository."""
+
+    def __init__(self, repo):
+        self.repo = repo
+
     def __call__(self, start, end):
         return self.repo.get(start, end)

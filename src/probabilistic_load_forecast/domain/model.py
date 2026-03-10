@@ -106,7 +106,7 @@ class LoadSeries:
         starts = [obs.interval.start for obs in self.observations]
         if starts != sorted(starts):
             raise ValueError("observations must be sorted by start time")
-        if any(obs.bidding_zone != self.area for obs in self.observations):
+        if any(obs.bidding_zone != self.bidding_zone for obs in self.observations):
             raise ValueError("all observations must belong to the same area")
 
 @dataclass(frozen=True)
