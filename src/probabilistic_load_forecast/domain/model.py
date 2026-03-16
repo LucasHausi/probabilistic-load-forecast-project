@@ -5,8 +5,12 @@ This module contains the core business entities.
 from enum import StrEnum
 from dataclasses import dataclass
 from datetime import date, datetime
+import re
 
-from probabilistic_load_forecast.domain.exceptions import UnknownBiddingZoneError
+from probabilistic_load_forecast.domain.exceptions import (
+    InvalidCountryCodeError,
+    UnknownBiddingZoneError,
+)
 
 class Resolution(StrEnum):
     PT15M = "15min"
@@ -19,16 +23,34 @@ class WeatherVariable(StrEnum):
     TP = "tp"
     SSRD = "ssrd"
 
+class WeatherValueKind(StrEnum):
+    INSTANT = "instant"
+    INTERVAL_END = "interval_end"
+
+@dataclass(frozen=True)
+class CountryCode:
+    value: str  # "AT"
+
+    def __post_init__(self) -> None:
+        normalized = self.value.strip().upper()
+        if not re.fullmatch(r"[A-Z]{2}", normalized):
+            raise InvalidCountryCodeError(
+                "country code must be a valid ISO 3166-1 alpha-2 code"
+            )
+        object.__setattr__(self, "value", normalized)
+
+    def __str__(self) -> str:
+        return self.value
+
 @dataclass(frozen=True)
 class BiddingZone:
     eic_code: str          # "10YAT-APG------L"
-    code: str              # "AT"
     display_name: str      # "Austria"
-    country_code: str | None
+    country_code: CountryCode
 
 @dataclass(frozen=True)
 class WeatherArea:
-    code: str   # "AT"
+    code: CountryCode
 
 @dataclass(frozen=True)
 class AreaMapping:
@@ -108,7 +130,7 @@ class LoadSeries:
         starts = [obs.interval.start for obs in self.observations]
         if starts != sorted(starts):
             raise ValueError("observations must be sorted by start time")
-        if any(obs.bidding_zone != self.bidding_zone for obs in self.observations):
+        if any(obs.bidding_zone.country_code.value != self.bidding_zone.country_code.value for obs in self.observations):
             raise ValueError("all observations must belong to the same area")
 
 @dataclass(frozen=True)
@@ -117,30 +139,29 @@ class Era5Series:
     area: WeatherArea
     resolution: Resolution
     observations: tuple[InstantWeatherValue | IntervalWeatherValue, ...]
+    variable: WeatherVariable
 
-
-# TODO: refactor out this classes
-# @dataclass
-# class LoadTimeseries:
-
-#     data: pd.DataFrame
-#     bidding_zone: str
-
-
-# @dataclass
-# class Era5Timeseries:
-
-#     data: pd.Series
-#     variable_name: str
-#     stat: str
+    def __post_init__(self) -> None:
+        if any(obs.area.code != self.area.code for obs in self.observations):
+            raise ValueError("all observations must belong to the same area")
+        
+        if any(obs.variable != self.variable for obs in self.observations):
+            raise ValueError("all observations must of the same weather variable type")
 
 BIDDING_ZONE_REGISTRY = {
     "10YAT-APG------L": BiddingZone(
         eic_code="10YAT-APG------L",
-        code="AT",
         display_name="Austria",
-        country_code="AT",
+        country_code=CountryCode("AT"),
     ),
+}
+
+VARIABLE_VALUE_KIND = {
+    WeatherVariable.T2M: WeatherValueKind.INSTANT,
+    WeatherVariable.U10: WeatherValueKind.INSTANT,
+    WeatherVariable.V10: WeatherValueKind.INSTANT,
+    WeatherVariable.SSRD: WeatherValueKind.INTERVAL_END,
+    WeatherVariable.TP: WeatherValueKind.INTERVAL_END,
 }
 
 def resolve_bidding_zone(eic_code):

@@ -5,7 +5,7 @@ Application use case for fetching load measurements and persisting them.
 from typing import Any
 
 from probabilistic_load_forecast.application.ports import DataProvider
-from probabilistic_load_forecast.application.mappers.load_series import load_series_to_dataframe
+from probabilistic_load_forecast.application.mappers import load_series_to_dataframe
 
 class ImportHistoricalLoadData:
     """

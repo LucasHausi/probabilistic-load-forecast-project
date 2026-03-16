@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from probabilistic_load_forecast.adapters.entsoe.mapper import XmlLoadMapper
-from probabilistic_load_forecast.domain.model import LoadMeasurement, BiddingZone, TimeInterval
+from probabilistic_load_forecast.domain.model import LoadMeasurement, BiddingZone, TimeInterval, CountryCode
 
 
 def test_parse_xml_load_data():
@@ -11,9 +11,8 @@ def test_parse_xml_load_data():
     assert measurements[0] == LoadMeasurement(
         bidding_zone=BiddingZone(
             eic_code="10YAT-APG------L",
-            code="AT",
             display_name="Austria",
-            country_code="AT",
+            country_code= CountryCode("AT"),
         ),
         interval=TimeInterval(
             start=datetime(2025, 7, 13, 0, 0, tzinfo=timezone.utc),
@@ -24,9 +23,8 @@ def test_parse_xml_load_data():
     assert measurements[95] == LoadMeasurement(
         bidding_zone=BiddingZone(
             eic_code="10YAT-APG------L",
-            code="AT",
             display_name="Austria",
-            country_code="AT",
+            country_code= CountryCode("AT"),
         ),
         interval=TimeInterval(
             start=datetime(2025, 7, 13, 23, 45, tzinfo=timezone.utc),

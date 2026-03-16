@@ -5,6 +5,7 @@ from .cds_services import (
     CreateCDSCountryAverages,
     GetERA5DataFromCDSStore,
     GetERA5DataFromDB,
+    GetMultipleERA5DataFrameFromDB
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "GetERA5DataFromCDSStore",
     "GetERA5DataFromDB",
     "GetActualLoadDataFrame",
+    "GetMultipleERA5DataFrameFromDB",
 ]

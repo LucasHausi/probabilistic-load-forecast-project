@@ -5,13 +5,21 @@ from datetime import datetime, timezone
 import psycopg
 import pytest
 
-from probabilistic_load_forecast.adapters.db.repository import EntsoePostgreRepository
+from probabilistic_load_forecast.adapters.db.repository import (
+    EntsoePostgreRepository, Era5PostgreRepository
+)
+
 from probabilistic_load_forecast.domain.model import (
     BiddingZone,
     LoadMeasurement,
     Resolution,
     TimeInterval,
-    LoadSeries
+    LoadSeries,
+    Era5Series,
+    InstantWeatherValue,
+    WeatherArea,
+    CountryCode,
+    WeatherVariable
 )
 
 
@@ -27,9 +35,8 @@ def postgres_dsn() -> str:
 def bidding_zone() -> BiddingZone:
     return BiddingZone(
         eic_code="10YAT-APG------L",
-        code="AT",
         display_name="Austria",
-        country_code="AT",
+        country_code=CountryCode("AT"),
     )
 
 
@@ -77,14 +84,14 @@ def test_entsoe_repository_roundtrip(postgres_dsn: str, test_schema: str, biddin
         )
     )
 
-    repo.add(measurements, schema=test_schema, tablename="actual_total_load_at")
+    repo.add(measurements, schema=test_schema, tablename="actual_total_load")
 
     series = repo.get(
         start=datetime(2025, 7, 13, 0, 0, tzinfo=timezone.utc),
         end=datetime(2025, 7, 13, 0, 30, tzinfo=timezone.utc),
         bidding_zone=bidding_zone,
         schema=test_schema,
-        tablename="actual_total_load_at",
+        tablename="actual_total_load",
     )
 
     assert series.bidding_zone == bidding_zone
@@ -94,3 +101,40 @@ def test_entsoe_repository_roundtrip(postgres_dsn: str, test_schema: str, biddin
     assert series.observations[0].load_mw == 4544.0
     assert series.observations[1].interval.start == datetime(2025, 7, 13, 0, 15, tzinfo=timezone.utc)
     assert series.observations[1].load_mw == 4521.0
+
+
+def test_era5_repository_roundtrip(postgres_dsn: str, test_schema: str):
+    repo = Era5PostgreRepository(postgres_dsn)
+
+    area=WeatherArea(CountryCode("AT"))
+    
+    repo.add(
+        Era5Series(
+            area=area,
+            resolution=Resolution.PT1H,
+            observations=(
+                InstantWeatherValue(
+                    area,
+                    WeatherVariable.T2M,
+                    datetime(2018,10,1,0,0,0, tzinfo=timezone.utc),
+                    10.0
+                ),
+                InstantWeatherValue(
+                    area,
+                    WeatherVariable.T2M,
+                    datetime(2018,10,2,0,0,0, tzinfo=timezone.utc),
+                    10.0
+                )
+            ),
+           variable=WeatherVariable.T2M
+        ),
+        schema=test_schema
+    )
+
+    repo.get(
+        interval=TimeInterval(datetime(2018,10,1,0,0,0, tzinfo=timezone.utc),datetime(2018,10,1, 23,59,59, tzinfo=timezone.utc)),
+        area=area,
+        variable=WeatherVariable.T2M,
+        schema=test_schema
+        
+   )

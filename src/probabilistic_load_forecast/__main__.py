@@ -23,6 +23,9 @@ from probabilistic_load_forecast.adapters.db import (
     EntsoePostgreRepository,
     Era5PostgreRepository,
 )
+from probabilistic_load_forecast.adapters.country_code import (
+    PycountryCountryCodeNormalizer,
+)
 
 from probabilistic_load_forecast.application.services import (
     ImportHistoricalLoadData,
@@ -31,6 +34,7 @@ from probabilistic_load_forecast.application.services import (
     GetERA5DataFromCDSStore,
     GetERA5DataFromDB,
 )
+from probabilistic_load_forecast.domain.model import TimeInterval, WeatherArea
 
 from probabilistic_load_forecast.adapters.cds import (
     CDSAPIClient,
@@ -95,6 +99,7 @@ def main():
         )
         cds_api_client = CDSAPIClient(client=cds_client, config=cds_config)
         cds_provider = CDSDataProvider(fetcher=cds_api_client)
+        country_code_normalizer = PycountryCountryCodeNormalizer()
 
         # ----------------------------------------------------------------
         #                    Testing the CDS Fetching
@@ -110,17 +115,21 @@ def main():
 
         # cds_file_repo = FileRepository()
         cds_postgre_repo = Era5PostgreRepository(config.get_postgre_uri())
-        # usecase = CreateCDSCountryAverages(cds_file_repo, cds_postgre_repo)
+        # usecase = CreateCDSCountryAverages(
+        #     cds_file_repo,
+        #     cds_postgre_repo,
+        #     country_code_normalizer,
+        # )
         start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
         end = datetime(2025, 10, 11, 0, 0, tzinfo=timezone.utc)
+        interval = TimeInterval(start=start, end=end)
         # print(usecase(start, end))
 
         usecase = GetERA5DataFromDB(cds_postgre_repo)
         result = usecase(
             variables=["t2m", "u10", "v10", "ssrd", "tp"],
-            country_code="AT",
-            start=start,
-            end=end,
+            area=WeatherArea(code=country_code_normalizer.normalize("AT")),
+            interval=interval,
         )
         print(result)
 

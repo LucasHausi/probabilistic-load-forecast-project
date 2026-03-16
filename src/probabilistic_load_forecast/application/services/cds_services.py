@@ -1,10 +1,24 @@
 """Services for handling CDS data."""
 
-from datetime import datetime
 import xarray as xr
 import pandas as pd
 import regionmask
-from probabilistic_load_forecast.adapters import utils
+from probabilistic_load_forecast.application.ports import CountryCodeNormalizer
+
+from probabilistic_load_forecast.domain.model import (
+    TimeInterval,
+    WeatherArea,
+    WeatherVariable,
+    Era5Series
+)
+
+from probabilistic_load_forecast.adapters.db import(
+    Era5PostgreRepository
+)
+
+from probabilistic_load_forecast.application.mappers import (
+    era5_series_to_dataframe
+)
 
 STAT_BY_VAR: dict = {
     "ssrd": "integrated_flux",  # J/m² over (t-1h, t]
@@ -23,16 +37,17 @@ class CreateCDSCountryAverages:
     """Fetches ERA5 data from CDS repository, computes country averages,
     and stores them into a database."""
 
-    def __init__(self, cds_repo, db_repo):
+    def __init__(self, cds_repo, db_repo: Era5PostgreRepository, country_code_normalizer: CountryCodeNormalizer):
         """Fetches and computes the country averages for ERA5 variables
         and stores them into a database."""
         self.cds_repo = cds_repo
         self.db_repo = db_repo
+        self.country_code_normalizer = country_code_normalizer
 
-    def __call__(self, start, end):
+    def __call__(self, interval: TimeInterval):
 
         # Fetch dataset lazily
-        ds: xr.Dataset = self.cds_repo.get(start, end)
+        ds: xr.Dataset = self.cds_repo.get(interval.start, interval.end)
 
         # Compute country averages
         averages_df = self._compute_country_averages(ds)
@@ -45,9 +60,8 @@ class CreateCDSCountryAverages:
 
         # Get the country ISO 3166-1 country code
         country = averages_df.iloc[0]["country"]
-        norm_country_code = utils.normalize_country(country)
+        country_code = self.country_code_normalizer.normalize(country)
 
-        
         # Remove non ERA5 variable columns
         era5_variables_df = averages_df.drop(columns=["number", "expver", "country"])
 
@@ -60,7 +74,7 @@ class CreateCDSCountryAverages:
                 variable=col_label,
                 df=sub_df,
                 stat=STAT_BY_VAR.get(col_label, "instant"),
-                country_code=norm_country_code,
+                country_code=country_code.value,
             )
 
     def _convert_accumulated_to_hourly(
@@ -107,11 +121,11 @@ class GetERA5DataFromCDSStore:
     def __init__(self, provider):
         self.provider = provider
 
-    def __call__(self, start, end):
-        return self.provider.get_data(start, end)
+    def __call__(self, interval: TimeInterval):
+        return self.provider.get_data(interval.start, interval.end)
 
 
-class GetERA5DataFromDB:
+class GetMultipleERA5DataFrameFromDB:
     """Use case that retrieves actual load data from a repository."""
 
     def __init__(self, repo):
@@ -119,12 +133,11 @@ class GetERA5DataFromDB:
 
     def __call__(
         self,
-        variables: list[str],
-        country_code: str,
-        start: datetime,
-        end: datetime,
+        variables: list[WeatherVariable],
+        area: WeatherArea,
+        interval: TimeInterval,
         schema: str = "public",
-    ) -> dict[str, pd.DataFrame]:
+    ) -> dict[WeatherVariable, pd.DataFrame]:
         """
         Fetch multiple time series datasets (one per variable) for a country.
 
@@ -132,18 +145,41 @@ class GetERA5DataFromDB:
         """
         results = {}
         for variable in variables:
-            tablename = (
-                f"{variable}_country_avg_{utils.normalize_country(country_code)}"
-            )
             try:
-                df = self.repo.get(
-                    start,
-                    end,
-                    tablename,
+                series = self.repo.get(
+                    interval,
+                    area=area,
+                    variable=variable,
                     schema=schema,
-                    stat=STAT_BY_VAR.get(variable, "instant"),
                 )
-                results[variable] = df
+
+                results[variable] = era5_series_to_dataframe(series)
             except Exception as e:
                 print(f"Could not fetch {variable}: {e}")
         return results
+
+class GetERA5DataFromDB:
+    """Use case that retrieves actual load data from a repository."""
+
+    def __init__(self, repo: Era5PostgreRepository):
+        self.repo = repo
+
+    def __call__(
+        self,
+        variable: WeatherVariable,
+        area: WeatherArea,
+        interval: TimeInterval,
+        schema: str = "public",
+    ) -> Era5Series:
+        """
+        Fetch multiple time series datasets (one per variable) for a country.
+
+        Returns a dict: {variable_name: DataFrame}
+        """
+
+        return self.repo.get(
+            interval,
+            area,
+            variable,
+            schema=schema
+        )

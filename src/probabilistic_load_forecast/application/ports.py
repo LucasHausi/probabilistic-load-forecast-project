@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime
-from probabilistic_load_forecast.domain.model import LoadMeasurement
+from probabilistic_load_forecast.domain.model import CountryCode, LoadMeasurement
 
 class DataProvider(ABC):
     """
@@ -23,3 +23,11 @@ class DataProvider(ABC):
         Returns:
             List[LoadMeasurement]: The measurements fetched from the data source.
         """
+
+
+class CountryCodeNormalizer(ABC):
+    """Abstract interface for normalizing country identifiers."""
+
+    @abstractmethod
+    def normalize(self, value: str) -> CountryCode:
+        """Normalize a raw country identifier into an ISO alpha-2 code."""

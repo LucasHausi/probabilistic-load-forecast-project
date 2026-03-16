@@ -9,6 +9,7 @@ from probabilistic_load_forecast.domain.model import (
     LoadSeries,
     Resolution,
     TimeInterval,
+    CountryCode
 )
 
 
@@ -27,9 +28,8 @@ def test_get_actual_load_data_returns_series():
     end = datetime(2025, 7, 13, 0, 30, tzinfo=timezone.utc)
     bidding_zone = BiddingZone(
         eic_code="10YAT-APG------L",
-        code="AT",
         display_name="Austria",
-        country_code="AT",
+        country_code=CountryCode("AT"),
     )
 
     expected_series = LoadSeries(
@@ -69,9 +69,8 @@ def test_get_actual_load_data_returns_empty_series():
     end = datetime(2025, 7, 13, 0, 30, tzinfo=timezone.utc)
     bidding_zone = bidding_zone = BiddingZone(
         eic_code="10YAT-APG------L",
-        code="AT",
         display_name="Austria",
-        country_code="AT",
+        country_code=CountryCode("AT"),
     )
 
     empty_series = LoadSeries(
