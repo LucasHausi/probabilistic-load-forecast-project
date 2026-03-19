@@ -132,6 +132,19 @@ class LoadSeries:
             raise ValueError("observations must be sorted by start time")
         if any(obs.bidding_zone.country_code.value != self.bidding_zone.country_code.value for obs in self.observations):
             raise ValueError("all observations must belong to the same area")
+    
+    @classmethod
+    def from_measurements(cls, measurements: list[LoadMeasurement]) -> "LoadSeries":
+        if not measurements:
+            raise ValueError("cannot build LoadSeries from empty measurements")
+
+        ordered = tuple(sorted(measurements, key=lambda m: m.interval.start))
+        first = ordered[0]
+        return cls(
+            bidding_zone=first.bidding_zone,
+            resolution=Resolution.PT15M,
+            observations=ordered,
+        )
 
 @dataclass(frozen=True)
 class Era5Series:

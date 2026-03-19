@@ -7,6 +7,10 @@ from typing import Any
 from probabilistic_load_forecast.application.ports import DataProvider
 from probabilistic_load_forecast.application.mappers import load_series_to_dataframe
 
+from probabilistic_load_forecast.domain.model import (
+    LoadSeries
+)
+
 class ImportHistoricalLoadData:
     """
     Use case that fetches load measurements for a given time range
@@ -23,7 +27,8 @@ class ImportHistoricalLoadData:
 
     def __call__(self, start, end):
         measurements = list(self.dataprovider.get_data(start, end))
-        self.repo.add(measurements)
+        series = LoadSeries.from_measurements(measurements)
+        self.repo.add(series)
 
 
 class GetActualLoadData:
@@ -32,7 +37,7 @@ class GetActualLoadData:
     def __init__(self, repo):
         self.repo = repo
 
-    def __call__(self, start, end, bidding_zone):
+    def __call__(self, start, end, bidding_zone) -> LoadSeries:
         return self.repo.get(start, end, bidding_zone)
 
 class GetActualLoadDataFrame:

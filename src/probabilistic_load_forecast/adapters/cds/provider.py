@@ -162,12 +162,12 @@ class CDSDataProvider:
                     time=datetime_cds_format["time"],
                     **kwargs,
                 )
+                cds_tasks.append(raw_data_location)
             time.sleep(batch_delay)
 
             # filename=kwargs.get("filename", f"era5_{datetime_cds_format["year"]}_{datetime_cds_format["month"]}.nc4.nc")
             # print("Querying:")
             # print(datetime_cds_format)
-            cds_tasks.append(raw_data_location)
         # print(cds_tasks)
         downloaded_paths = asyncio.run(self._poll_and_download(cds_tasks))
 

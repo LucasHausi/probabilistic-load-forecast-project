@@ -3,13 +3,22 @@
 import xarray as xr
 import pandas as pd
 import regionmask
+from datetime import datetime
+from typing import cast
+
 from probabilistic_load_forecast.application.ports import CountryCodeNormalizer
 
 from probabilistic_load_forecast.domain.model import (
     TimeInterval,
     WeatherArea,
     WeatherVariable,
-    Era5Series
+    Era5Series,
+    Resolution,
+    VARIABLE_VALUE_KIND,
+    WeatherValueKind,
+    InstantWeatherValue,
+    IntervalWeatherValue,
+    IntervalStatistic
 )
 
 from probabilistic_load_forecast.adapters.db import(
@@ -20,13 +29,13 @@ from probabilistic_load_forecast.application.mappers import (
     era5_series_to_dataframe
 )
 
-STAT_BY_VAR: dict = {
-    "ssrd": "integrated_flux",  # J/m² over (t-1h, t]
-    "tp": "integrated_flux",  # (t-1h, t]
-    "t2m": "instant",
-    "u10": "instant",
-    "v10": "instant",
-}
+# STAT_BY_VAR: dict = {
+#     "ssrd": "integrated_flux",  # J/m² over (t-1h, t]
+#     "tp": "integrated_flux",  # (t-1h, t]
+#     "t2m": "instant",
+#     "u10": "instant",
+#     "v10": "instant",
+# }
 
 
 class NoUniqueCountry(Exception):
@@ -51,11 +60,19 @@ class CreateCDSCountryAverages:
 
         # Compute country averages
         averages_df = self._compute_country_averages(ds)
+        
+        idx: pd.DatetimeIndex = averages_df.index
+        if idx.tz is None:
+            idx = idx.tz_localize("UTC")
+        else:
+            idx = idx.tz_convert("UTC")
 
+        averages_df.index = idx
         # Check if there is only one value for the country
         if averages_df["country"].nunique() != 1:
             raise NoUniqueCountry(
-                "There are multiple Countries found in the loaded CDS data."
+                "There are multiple Countries found in the loaded CDS data.",
+                averages_df["country"]
             )
 
         # Get the country ISO 3166-1 country code
@@ -67,14 +84,48 @@ class CreateCDSCountryAverages:
 
         # Store results
         for col_label, content in era5_variables_df.items():
-            content.name = "value"
-            sub_df = pd.DataFrame(data=content, index=era5_variables_df.index)
+            variable = WeatherVariable(col_label)
+            area = WeatherArea(code=country_code)
+            value_kind = VARIABLE_VALUE_KIND[variable]
+            observations = []
 
+            for valid_time, value in content.items():
+                valid_at = cast(datetime, valid_time)
+                value = float(value)
+
+                if value_kind is WeatherValueKind.INSTANT:
+                    observations.append(
+                        InstantWeatherValue(
+                            area=area,
+                            variable=variable,
+                            valid_at=valid_at,
+                            value=value,
+                        )
+                    )
+                else:
+                    observations.append(
+                        IntervalWeatherValue(
+                            area=area,
+                            variable=variable,
+                            interval=TimeInterval(
+                                start=valid_at - pd.Timedelta(hours=1),
+                                end=valid_at,
+                            ),
+                            statistic=IntervalStatistic.TOTAL,
+                            value=value,
+                        )
+                    )
+            # content.name = "value"
+            # sub_df = pd.DataFrame(data=content, index=era5_variables_df.index)
+
+            series = Era5Series(
+                WeatherArea(code=country_code),
+                resolution=Resolution.PT1H,
+                observations=tuple(observations),
+                variable=variable
+            )
             self.db_repo.add(
-                variable=col_label,
-                df=sub_df,
-                stat=STAT_BY_VAR.get(col_label, "instant"),
-                country_code=country_code.value,
+                weather_series=series
             )
 
     def _convert_accumulated_to_hourly(
