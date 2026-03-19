@@ -17,6 +17,7 @@ dependencies = [
     "cdsapi>=0.7.6",
     "dask>=2025.9.1",
     "dotenv>=0.9.9",
+    "fastapi[standard]>=0.128.0",
     "geopandas>=1.1.1",
     "lxml>=6.0.1",
     "matplotlib>=3.10.6",
@@ -37,12 +38,13 @@ dependencies = [
     "setuptools>=80.9.0",
     "shap>=0.50.0",
     "statsmodels>=0.14.5",
+    "streamlit>=1.55.0",
     "wheel>=0.45.1",
     "xarray>=2025.9.0",
 ]
 
 [project.scripts]
-plf = "probabilistic_load_forecast.__main__:main"
+plf = "probabilistic_load_forecast.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -90,3 +92,6 @@ torchvision = [
 name = "pytorch-cu128"
 url = "https://download.pytorch.org/whl/cu128"
 explicit = true
+
+[tool.fastapi]
+entrypoint = "apps.api.main:app"
