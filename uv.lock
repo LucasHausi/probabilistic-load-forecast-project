@@ -455,6 +455,21 @@ wheels = [
 ]
 
 [[package]]
+name = "cfgrib"
+version = "0.9.15.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "click" },
+    { name = "eccodes" },
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4a/51/cace2747a517667bbbe5fcab1f35958ad05c778251a452c461b8b3649dbe/cfgrib-0.9.15.1.tar.gz", hash = "sha256:d959d8b97e55a63646fa86686b297905ff7f2918a91e3a11d6292dab09598e4d", size = 9746591, upload-time = "2025-09-30T22:46:14.133Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/e8/16c58c57c9ce1474dd1e50090ebd78b008c70fc4f06793da65f9a0aba391/cfgrib-0.9.15.1-py3-none-any.whl", hash = "sha256:f1bee90e86917389be9f767051bf32d00f95f6f4e4312b344567511b3cfd62d2", size = 49123, upload-time = "2025-09-30T22:46:12.206Z" },
+]
+
+[[package]]
 name = "cfgv"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -822,6 +837,23 @@ wheels = [
 ]
 
 [[package]]
+name = "eccodes"
+version = "2.46.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "cffi" },
+    { name = "findlibs" },
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/20/45/2c765fbf9315a9f9311b30ee29bdc44bb393fcf6525dac68e6ea906d36b3/eccodes-2.46.0.tar.gz", hash = "sha256:63fda0f047f97ec62b70aa3e17a7e317c9dccd6708f8918eae617884d8a54aaa", size = 2467182, upload-time = "2026-02-24T12:27:38.874Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7d/a6/1d368ce76e0c67ebd4e0ba7df7c82ee66922ab9d2eca332331af49fc7535/eccodes-2.46.0-cp311-cp311-win_amd64.whl", hash = "sha256:e63d6b0c0f9dc6834121e9809c08a802cd9824a2b15221b014a6a41e9c243373", size = 7431027, upload-time = "2026-02-24T12:27:04.484Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/cd/8066cbb2c20ef2e158e6fb1212a34ac1fc7865dcdc6d166cc4b5a6f6961e/eccodes-2.46.0-cp312-cp312-win_amd64.whl", hash = "sha256:21c648d08eb4e7a26373a5a8734a6a58847a7c3d5b5b7d2b75a1229139b7c31f", size = 7431108, upload-time = "2026-02-24T12:27:07.543Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/80/81d98622ebcb57b8fd6b6b5cd0f1083ac1b767706c612d20035d5d056069/eccodes-2.46.0-py3-none-any.whl", hash = "sha256:9898d0e6126e52f141edc76cdd89aa631925edbe6b1d29ca04540c4fd93ad74c", size = 91505, upload-time = "2026-02-24T12:27:37.288Z" },
+]
+
+[[package]]
 name = "ecmwf-datastores-client"
 version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -834,6 +866,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6a/01/9867407cbc9f0b9dd51cd55791e0aa1a58167a5ba56223825165c9a39b9f/ecmwf_datastores_client-0.4.0.tar.gz", hash = "sha256:814b6af39279fe5e49e8de7278d3a63894ead71fa609f616e9ff090d9fe62d9d", size = 48142, upload-time = "2025-07-30T10:43:24.816Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1b/c5/8c6ffcc8ed751c22540fb3c7deb92932e9d96c27a7acf2c1e1e4e2c9e6fb/ecmwf_datastores_client-0.4.0-py3-none-any.whl", hash = "sha256:1c048dfff371912a72150e74726d5fb2bd30d9e5f165e503b58f367b58f7df91", size = 29089, upload-time = "2025-07-30T10:43:23.081Z" },
+]
+
+[[package]]
+name = "ecmwf-opendata"
+version = "0.3.26"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "multiurl" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b6/16/074aee6fd1fa21b6445fb8429a16c50dac91053b66f3c99ada86b09665e2/ecmwf_opendata-0.3.26.tar.gz", hash = "sha256:8b49eed2282c167e50663b38768631a5b6d758fd947c4ea764d37433ac92523a", size = 28873, upload-time = "2025-12-04T15:08:29.677Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/74/7795b50a4a74dd0d9b8f8b028912878da0e64969eb4889e64b7a75aeef63/ecmwf_opendata-0.3.26-py3-none-any.whl", hash = "sha256:e158bab54f86908dbc634c1660a527bd1d27dbe26ba4d8484f622cd8565185d6", size = 21818, upload-time = "2025-12-04T15:08:28.531Z" },
 ]
 
 [[package]]
@@ -990,6 +1034,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/40/bb/0ab3e58d22305b6f5440629d20683af28959bf793d98d11950e305c1c326/filelock-3.19.1.tar.gz", hash = "sha256:66eda1888b0171c998b35be2bcc0f6d75c388a7ce20c3f3f37aa8e96c2dddf58", size = 17687, upload-time = "2025-08-14T16:56:03.016Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/14/42b2651a2f46b022ccd948bca9f2d5af0fd8929c4eec235b8d6d844fbe67/filelock-3.19.1-py3-none-any.whl", hash = "sha256:d38e30481def20772f5baf097c122c3babc4fcdb7e14e57049eb9d88c6dc017d", size = 15988, upload-time = "2025-08-14T16:56:01.633Z" },
+]
+
+[[package]]
+name = "findlibs"
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/22/ef/345b0f88b8e9d9e12051142a9cdcf590bf70206d20d81c3f773ade8d9e32/findlibs-0.1.2.tar.gz", hash = "sha256:1f56d220c69686392ebdc4c65b32ee344818bca633643a8c97592957d1728122", size = 11302, upload-time = "2025-07-28T09:15:03.675Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2f/ff/76dd547e129206899e4e26446c3ca7aeaff948c31b05250e9b8690e76883/findlibs-0.1.2-py3-none-any.whl", hash = "sha256:5348bbc7055d2a505962576c2e285b6c0aae6d749f82ba71296e7d41336e66e8", size = 10707, upload-time = "2025-07-28T09:15:02.733Z" },
 ]
 
 [[package]]
@@ -2779,8 +2832,10 @@ dependencies = [
     { name = "alembic" },
     { name = "blitz-bayesian-pytorch" },
     { name = "cdsapi" },
+    { name = "cfgrib" },
     { name = "dask" },
     { name = "dotenv" },
+    { name = "ecmwf-opendata" },
     { name = "fastapi", extra = ["standard"] },
     { name = "geopandas" },
     { name = "lxml" },
@@ -2837,8 +2892,10 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.17.2" },
     { name = "blitz-bayesian-pytorch", specifier = ">=0.2.8" },
     { name = "cdsapi", specifier = ">=0.7.6" },
+    { name = "cfgrib", specifier = ">=0.9.15.1" },
     { name = "dask", specifier = ">=2025.9.1" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "ecmwf-opendata", specifier = ">=0.3.26" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.128.0" },
     { name = "geopandas", specifier = ">=1.1.1" },
     { name = "lxml", specifier = ">=6.0.1" },
@@ -4283,8 +4340,8 @@ dependencies = [
     { name = "torch", version = "2.9.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-27-probabilistic-load-forecast-cu128') or (platform_machine != 'aarch64' and extra == 'extra-27-probabilistic-load-forecast-cpu' and extra == 'extra-27-probabilistic-load-forecast-cu128') or (platform_python_implementation != 'CPython' and extra == 'extra-27-probabilistic-load-forecast-cpu' and extra == 'extra-27-probabilistic-load-forecast-cu128') or (sys_platform != 'linux' and extra == 'extra-27-probabilistic-load-forecast-cpu' and extra == 'extra-27-probabilistic-load-forecast-cu128')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.24.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:61a2d857a2be441cbd5a80b807b70b5d3b580c95166b3a19d4e433e7a85aeb76" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.24.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:bd33a7cc32122bc92919f95ea0e7bf73588e71be0ca2c5cad8fb7eebd333e8dd" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.24.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:61a2d857a2be441cbd5a80b807b70b5d3b580c95166b3a19d4e433e7a85aeb76" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.24.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:bd33a7cc32122bc92919f95ea0e7bf73588e71be0ca2c5cad8fb7eebd333e8dd" },
 ]
 
 [[package]]
@@ -4331,10 +4388,10 @@ dependencies = [
     { name = "torch", version = "2.9.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(platform_machine != 'aarch64' and extra == 'extra-27-probabilistic-load-forecast-cu128') or (platform_python_implementation != 'CPython' and extra == 'extra-27-probabilistic-load-forecast-cu128') or (sys_platform != 'linux' and extra == 'extra-27-probabilistic-load-forecast-cu128') or (extra == 'extra-27-probabilistic-load-forecast-cpu' and extra == 'extra-27-probabilistic-load-forecast-cu128')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1b44f67cbd8f36e2a58bfaa3176d35b37df55604adf5929e89006e531f849faa" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp311-cp311-win_amd64.whl", hash = "sha256:6d836745bd3130ef8f3569c9f0d9d70103b5e2e9fa058310bcac5f63bcf2d043" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:cf84eae1d2d12a7d261a7496eca00dd927b71792011b1e84d4162c950eb3201d" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp312-cp312-win_amd64.whl", hash = "sha256:33ecea57afa1daeedfed443a8a0cb8e4b0b403fdf18c2a328ba6f9069d403384" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1b44f67cbd8f36e2a58bfaa3176d35b37df55604adf5929e89006e531f849faa" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp311-cp311-win_amd64.whl", hash = "sha256:6d836745bd3130ef8f3569c9f0d9d70103b5e2e9fa058310bcac5f63bcf2d043" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:cf84eae1d2d12a7d261a7496eca00dd927b71792011b1e84d4162c950eb3201d" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.24.1%2Bcu128-cp312-cp312-win_amd64.whl", hash = "sha256:33ecea57afa1daeedfed443a8a0cb8e4b0b403fdf18c2a328ba6f9069d403384" },
 ]
 
 [[package]]
