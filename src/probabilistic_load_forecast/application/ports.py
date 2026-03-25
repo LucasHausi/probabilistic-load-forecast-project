@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Any
 from datetime import datetime
-from probabilistic_load_forecast.domain.model import CountryCode, LoadMeasurement
+from probabilistic_load_forecast.domain.model import (
+    CountryCode,
+    TimeInterval
+)
+
 
 class DataProvider(ABC):
     """
@@ -12,16 +16,15 @@ class DataProvider(ABC):
 
     @abstractmethod
     def get_data(
-        self, start:datetime, end:datetime, **kwargs
-    ) -> List[LoadMeasurement]:
-        """Retrieve measurements within a given time range.
+        self, interval: TimeInterval, **kwargs
+    ) -> List[Any]:
+        """Retrieve measurements within a given interval.
         Args:
-            start (datetime): Start of the time window (inclusive).
-            end (datetime): End of the time window (exclusive).
+            interval: Specifies the interval of the data to fetch
             **kwargs: Optional source-specific parameters.
 
         Returns:
-            List[LoadMeasurement]: The measurements fetched from the data source.
+            List[Any]: The measurements fetched from the data source.
         """
 
 

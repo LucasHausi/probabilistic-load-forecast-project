@@ -79,7 +79,8 @@ def to_json(value) -> str:
 
 def cmd_load_import(args: argparse.Namespace) -> int:
     service = ImportHistoricalLoadData(build_entsoe_provider(), build_load_repo())
-    service(parse_dt(args.start), parse_dt(args.end))
+    interval = TimeInterval(start=parse_dt(args.start), end=parse_dt(args.end))
+    service(interval)
     return 0
 
 def cmd_load_get(args: argparse.Namespace) -> int:

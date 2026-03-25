@@ -2,13 +2,15 @@
 Application use case for fetching load measurements and persisting them.
 """
 
-from typing import Any
+from typing import Any, List
 
 from probabilistic_load_forecast.application.ports import DataProvider
 from probabilistic_load_forecast.application.mappers import load_series_to_dataframe
 
 from probabilistic_load_forecast.domain.model import (
-    LoadSeries
+    LoadSeries,
+    TimeInterval,
+    LoadMeasurement
 )
 
 class ImportHistoricalLoadData:
@@ -25,8 +27,8 @@ class ImportHistoricalLoadData:
         self.dataprovider = provider
         self.repo = repo
 
-    def __call__(self, start, end):
-        measurements = list(self.dataprovider.get_data(start, end))
+    def __call__(self, interval: TimeInterval) -> None:
+        measurements = list(self.dataprovider.get_data(interval))
         series = LoadSeries.from_measurements(measurements)
         self.repo.add(series)
 
