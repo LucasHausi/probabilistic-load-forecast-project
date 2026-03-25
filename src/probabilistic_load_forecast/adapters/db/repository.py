@@ -21,7 +21,7 @@ from probabilistic_load_forecast.domain.model import (
     IntervalWeatherValue,
     CountryCode,
     VARIABLE_VALUE_KIND,
-    WeatherValueKind
+    WeatherValueKind,
 )
 
 from probabilistic_load_forecast.domain.model import resolve_bidding_zone
@@ -184,9 +184,7 @@ class Era5PostgreRepository:
                     "variable is required to build an IntervalWeatherValue from a row"
                 )
             statistic = (
-                IntervalStatistic.MEAN
-                if stat == "mean"
-                else IntervalStatistic.TOTAL
+                IntervalStatistic.MEAN if stat == "mean" else IntervalStatistic.TOTAL
             )
             return IntervalWeatherValue(
                 area=area,
@@ -200,7 +198,7 @@ class Era5PostgreRepository:
             )
 
         raise ValueError(f"unsupported stat value: {stat}")
-        
+
     def _create_table(
         self, tablename: str, cur: psycopg.Cursor, schema: str = "public"
     ):
@@ -252,7 +250,13 @@ class Era5PostgreRepository:
                     ),
                 )
 
-    def get(self, interval: TimeInterval, area: WeatherArea, variable: WeatherVariable, schema: str = "public") -> Era5Series:
+    def get(
+        self,
+        interval: TimeInterval,
+        area: WeatherArea,
+        variable: WeatherVariable,
+        schema: str = "public",
+    ) -> Era5Series:
         tablename = f"{variable}_country_avg"
         with psycopg.connect(self.dsn) as con:
             with con.cursor() as cur:
@@ -281,13 +285,15 @@ class Era5PostgreRepository:
                 cur.execute(select_stmt, params)
                 rows = cur.fetchall()
 
-                observations = tuple(self._row_to_observation(row, variable) for row in rows)
-                
+                observations = tuple(
+                    self._row_to_observation(row, variable) for row in rows
+                )
+
                 return Era5Series(
                     area=area,
                     resolution=Resolution.PT1H,
                     observations=observations,
-                    variable=variable
+                    variable=variable,
                 )
 
                 # df = pd.DataFrame(data=rows, columns=["valid_time", "value"])
@@ -304,3 +310,47 @@ class Era5PostgreRepository:
 
                 # df.set_index("valid_time", inplace=True)
                 # return df
+
+
+class ForecastMetadataRepository:
+    def __init__(self, dsn: str):
+        self.dsn = dsn
+        self.timestamp_sources = [
+            ("ssrd_country_avg", "valid_time"),
+            ("actual_total_load", "start_ts"),
+            ("t2m_country_avg", "valid_time"),
+            ("tp_country_avg", "valid_time"),
+            ("u10_country_avg", "valid_time"),
+            ("v10_country_avg", "valid_time"),
+        ]
+
+    def get_latest_common_timestamp(self, schema: str = "public") -> datetime | None:
+        least_parts = [
+            sql.SQL("(SELECT MAX({}) FROM {})").format(
+                sql.Identifier(column),
+                sql.Identifier(schema, table_name),
+            )
+            for table_name, column in self.timestamp_sources
+        ]
+
+        query = sql.SQL(
+            """
+            WITH last_common_hour AS (
+                SELECT LEAST({}) AS ts
+            )
+            SELECT MAX(atl.start_ts)
+            FROM {} atl
+            CROSS JOIN last_common_hour lch
+            WHERE atl.end_ts <= lch.ts
+            """
+        ).format(
+            sql.SQL(", ").join(least_parts),
+            sql.Identifier(schema, "actual_total_load"),
+        )
+
+        with psycopg.connect(self.dsn) as con:
+            with con.cursor() as cur:
+                cur.execute(query)
+                row = cur.fetchone()
+
+        return row[0] if row else None

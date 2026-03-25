@@ -5,8 +5,7 @@ def load_series_to_dataframe(load_series) -> pd.DataFrame:
     rows = [
         {
             "start_ts": obs.interval.start,
-            "end_ts": obs.interval.end,
-            "load_mw": obs.load_mw,
+            "actual_load_mw": obs.load_mw,
         }
         for obs in load_series.observations
     ]
