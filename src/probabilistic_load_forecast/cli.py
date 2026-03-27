@@ -5,12 +5,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import cdsapi
+from ecmwf.opendata import Client as ECMWFOpenDataClient
 from dotenv import load_dotenv
 
 from probabilistic_load_forecast import config
 from probabilistic_load_forecast.adapters.cds import CDSAPIClient, CDSConfig, CDSDataProvider, FileRepository
 from probabilistic_load_forecast.adapters.country_code import PycountryCountryCodeNormalizer
 from probabilistic_load_forecast.adapters.db import EntsoePostgreRepository, Era5PostgreRepository
+from probabilistic_load_forecast.adapters.ecwmf.api_client import ECWMFAPIClient
+from probabilistic_load_forecast.adapters.ecwmf.mapper import ECWMFMapper
+from probabilistic_load_forecast.adapters.ecwmf.provider import ECWMFDataProvider
 from probabilistic_load_forecast.adapters.entsoe import EntsoeAPIClient, EntsoeDataProvider, EntsoeFetcher, XmlLoadMapper
 from probabilistic_load_forecast.application.services import (
     CreateCDSCountryAverages,
@@ -18,6 +22,7 @@ from probabilistic_load_forecast.application.services import (
     GetERA5DataFromCDSStore,
     GetERA5DataFromDB,
     ImportHistoricalLoadData,
+    ImportWeatherForecast,
 )
 from probabilistic_load_forecast.domain.model import (
     TimeInterval,
@@ -71,6 +76,14 @@ def build_cds_provider() -> CDSDataProvider:
         field_limit=12000,
     )
     return CDSDataProvider(fetcher=CDSAPIClient(client=client, config=cfg))
+
+def build_ecwmf_provider(target_dir: Path) -> ECWMFDataProvider:
+    target_dir.mkdir(parents=True, exist_ok=True)
+    client = ECMWFOpenDataClient()
+    return ECWMFDataProvider(
+        fetcher=ECWMFAPIClient(target_dir=target_dir, client=client),
+        mapper=ECWMFMapper(),
+    )
 
 def to_json(value) -> str:
     if is_dataclass(value):
@@ -160,6 +173,35 @@ def cmd_weather_store_averages(args: argparse.Namespace) -> int:
     )
     return 0
 
+def cmd_weather_import_forecast(args: argparse.Namespace) -> int:
+    interval = TimeInterval(start=parse_dt(args.start), end=parse_dt(args.end))
+    normalizer = PycountryCountryCodeNormalizer()
+
+    service = ImportWeatherForecast(
+        build_ecwmf_provider(Path(args.target_dir)),
+        build_weather_repo(),
+    )
+    area = WeatherArea(code=normalizer.normalize(args.area_code))
+    variable = WeatherVariable(args.variable)
+
+    service(interval=interval, area=area, weather_variable=variable)
+
+    print(
+        to_json(
+            {
+                "status": "ok",
+                "stored_interval": {
+                    "start": interval.start,
+                    "end": interval.end,
+                },
+                "area_code": area.code.value,
+                "variable": variable.value,
+                "target_dir": str(Path(args.target_dir)),
+            }
+        )
+    )
+    return 0
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="plf")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -201,6 +243,21 @@ def build_parser() -> argparse.ArgumentParser:
     weather_store_averages.add_argument("--start", required=True)
     weather_store_averages.add_argument("--end", required=True)
     weather_store_averages.set_defaults(handler=cmd_weather_store_averages)
+
+    weather_import_forecast = weather_sub.add_parser("import-forecast")
+    weather_import_forecast.add_argument("--start", required=True)
+    weather_import_forecast.add_argument("--end", required=True)
+    weather_import_forecast.add_argument(
+        "--variable",
+        required=True,
+        choices=[variable.value for variable in WeatherVariable],
+    )
+    weather_import_forecast.add_argument("--area-code", default="AT")
+    weather_import_forecast.add_argument(
+        "--target-dir",
+        default=str(ROOT_DIR / "data" / "ecwmf"),
+    )
+    weather_import_forecast.set_defaults(handler=cmd_weather_import_forecast)
 
     return parser
 

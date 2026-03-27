@@ -131,6 +131,8 @@ class Era5PostgreRepository:
     def _resolution_to_seconds(self, resolution: Resolution) -> int:
         if resolution == Resolution.PT1H:
             return 3600
+        if resolution == Resolution.PT3H:
+            return 10800
         if resolution == Resolution.PT15M:
             return 900
         raise ValueError(f"Unsupported resolution: {resolution}")

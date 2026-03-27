@@ -11,7 +11,7 @@ class EntsoeDataProvider(DataProvider):
         self.fetcher = fetcher
         self.mapper = mapper
 
-    def get_data(self, start, end, **kwargs):
-        raw_data = self.fetcher.fetch(start, end, **kwargs)
+    def get_data(self, interval, **kwargs):
+        raw_data = self.fetcher.fetch(interval.start, interval.end, **kwargs)
         mapped_data = [self.mapper.map(data) for data in raw_data if data is not None]
         return chain.from_iterable(mapped_data)

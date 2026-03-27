@@ -15,6 +15,7 @@ from probabilistic_load_forecast.domain.exceptions import (
 class Resolution(StrEnum):
     PT15M = "15min"
     PT1H = "1h"
+    PT3H = "3h"
 
 class WeatherVariable(StrEnum):
     T2M = "t2m"

@@ -66,7 +66,9 @@ def test_import_weather_forecast_stores_series_from_provider():
     repo = FakeEra5Repository()
 
     service = ImportWeatherForecast(provider=provider, repo=repo)
-    service(interval, area)
+    service(interval, area, WeatherVariable.T2M)
 
-    assert provider.calls == [(interval, {"area": area})]
+    assert provider.calls == [
+        (interval, {"area": area, "weather_variable": WeatherVariable.T2M})
+    ]
     assert repo.calls == [(expected_series, "public")]
