@@ -33,7 +33,7 @@ GRIB_SHORT_NAME_BY_VARIABLE = {
 }
 
 
-class ECWMFMapper:
+class ECMWFMapper:
     def _hourly_instant_values(self, values: pd.Series) -> pd.Series:
         hourly_index = pd.date_range(
             start=values.index.min(),

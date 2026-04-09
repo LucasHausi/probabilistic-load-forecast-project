@@ -12,9 +12,9 @@ from probabilistic_load_forecast import config
 from probabilistic_load_forecast.adapters.cds import CDSAPIClient, CDSConfig, CDSDataProvider, FileRepository
 from probabilistic_load_forecast.adapters.country_code import PycountryCountryCodeNormalizer
 from probabilistic_load_forecast.adapters.db import EntsoePostgreRepository, Era5PostgreRepository
-from probabilistic_load_forecast.adapters.ecwmf.api_client import ECWMFAPIClient
-from probabilistic_load_forecast.adapters.ecwmf.mapper import ECWMFMapper
-from probabilistic_load_forecast.adapters.ecwmf.provider import ECWMFDataProvider
+from probabilistic_load_forecast.adapters.ecmwf.api_client import ECMWFAPIClient
+from probabilistic_load_forecast.adapters.ecmwf.mapper import ECMWFMapper
+from probabilistic_load_forecast.adapters.ecmwf.provider import ECMWFDataProvider
 from probabilistic_load_forecast.adapters.entsoe import EntsoeAPIClient, EntsoeDataProvider, EntsoeFetcher, XmlLoadMapper
 from probabilistic_load_forecast.application.services import (
     CreateCDSCountryAverages,
@@ -77,12 +77,12 @@ def build_cds_provider() -> CDSDataProvider:
     )
     return CDSDataProvider(fetcher=CDSAPIClient(client=client, config=cfg))
 
-def build_ecwmf_provider(target_dir: Path) -> ECWMFDataProvider:
+def build_ecmwf_provider(target_dir: Path) -> ECMWFDataProvider:
     target_dir.mkdir(parents=True, exist_ok=True)
     client = ECMWFOpenDataClient()
-    return ECWMFDataProvider(
-        fetcher=ECWMFAPIClient(target_dir=target_dir, client=client),
-        mapper=ECWMFMapper(),
+    return ECMWFDataProvider(
+        fetcher=ECMWFAPIClient(target_dir=target_dir, client=client),
+        mapper=ECMWFMapper(),
     )
 
 def to_json(value) -> str:
@@ -178,7 +178,7 @@ def cmd_weather_import_forecast(args: argparse.Namespace) -> int:
     normalizer = PycountryCountryCodeNormalizer()
 
     service = ImportWeatherForecast(
-        build_ecwmf_provider(Path(args.target_dir)),
+        build_ecmwf_provider(Path(args.target_dir)),
         build_weather_repo(),
     )
     area = WeatherArea(code=normalizer.normalize(args.area_code))
@@ -255,7 +255,7 @@ def build_parser() -> argparse.ArgumentParser:
     weather_import_forecast.add_argument("--area-code", default="AT")
     weather_import_forecast.add_argument(
         "--target-dir",
-        default=str(ROOT_DIR / "data" / "ecwmf"),
+        default=str(ROOT_DIR / "data" / "ecmwf"),
     )
     weather_import_forecast.set_defaults(handler=cmd_weather_import_forecast)
 

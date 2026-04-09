@@ -343,7 +343,7 @@ class ForecastMetadataRepository:
             SELECT MAX(atl.start_ts)
             FROM {} atl
             CROSS JOIN last_common_hour lch
-            WHERE atl.end_ts <= lch.ts
+            WHERE atl.start_ts <= lch.ts
             """
         ).format(
             sql.SQL(", ").join(least_parts),

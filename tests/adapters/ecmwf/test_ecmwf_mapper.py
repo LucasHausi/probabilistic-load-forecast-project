@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from probabilistic_load_forecast.adapters.ecwmf.mapper import ECWMFMapper
+from probabilistic_load_forecast.adapters.ecmwf.mapper import ECMWFMapper
 from probabilistic_load_forecast.domain.model import (
     CountryCode,
     Era5Series,
@@ -12,8 +12,8 @@ from probabilistic_load_forecast.domain.model import (
 )
 
 
-def test_ecwmf_mapper_returns_country_average_series_for_t2m():
-    mapper = ECWMFMapper()
+def test_ecmwf_mapper_returns_country_average_series_for_t2m():
+    mapper = ECMWFMapper()
     area = WeatherArea(code=CountryCode("AT"))
 
     result = mapper.map(

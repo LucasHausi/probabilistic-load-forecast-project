@@ -218,3 +218,4 @@ mlflow.db
 data_combined.parquet
 settings.json
 optuna_bayesian_lstm.db
+data/ecmwf/*

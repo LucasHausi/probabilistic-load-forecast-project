@@ -14,7 +14,7 @@ WEATHER_VARIABLE_MAPPING = {
 }
 
 
-class ECWMFAPIClient:
+class ECMWFAPIClient:
     def __init__(self, target_dir: Path, client) -> None:
         self.client = client
         self.target_dir = target_dir

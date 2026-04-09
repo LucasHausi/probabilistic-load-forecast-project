@@ -113,25 +113,25 @@ def main():
         #                    Testing the CDS File Repo
         # ----------------------------------------------------------------
 
-        # cds_file_repo = FileRepository()
+        cds_file_repo = FileRepository()
         cds_postgre_repo = Era5PostgreRepository(config.get_postgre_uri())
-        # usecase = CreateCDSCountryAverages(
-        #     cds_file_repo,
-        #     cds_postgre_repo,
-        #     country_code_normalizer,
-        # )
+        usecase = CreateCDSCountryAverages(
+            cds_file_repo,
+            cds_postgre_repo,
+            country_code_normalizer,
+        )
         start = datetime(2018, 10, 1, 0, 0, tzinfo=timezone.utc)
         end = datetime(2025, 10, 11, 0, 0, tzinfo=timezone.utc)
         interval = TimeInterval(start=start, end=end)
-        # print(usecase(start, end))
+        print(usecase(interval))
 
-        usecase = GetERA5DataFromDB(cds_postgre_repo)
-        result = usecase(
-            variables=["t2m", "u10", "v10", "ssrd", "tp"],
-            area=WeatherArea(code=country_code_normalizer.normalize("AT")),
-            interval=interval,
-        )
-        print(result)
+        # usecase = GetERA5DataFromDB(cds_postgre_repo)
+        # result = usecase(
+        #     variables=["t2m", "u10", "v10", "ssrd", "tp"],
+        #     area=WeatherArea(code=country_code_normalizer.normalize("AT")),
+        #     interval=interval,
+        # )
+        # print(result)
 
         # ----------------------------------------------------------------
         #                    Testing the ENTSOE Fetching

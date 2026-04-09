@@ -7,7 +7,7 @@ from probabilistic_load_forecast.domain.model import (
     WeatherVariable,
 )
 
-class ECWMFDataProvider(DataProvider):
+class ECMWFDataProvider(DataProvider):
     def __init__(self, fetcher, mapper) -> None:
         self.fetcher = fetcher
         self.mapper = mapper

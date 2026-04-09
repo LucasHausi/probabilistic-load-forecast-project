@@ -11,7 +11,7 @@ from .cds_services import (
     GetERA5DataFromDB,
     GetMultipleERA5DataFrameFromDB,
 )
-from .ecwmf_services import ImportWeatherForecast
+from .ecmwf_services import ImportWeatherForecast
 
 from .forecast_services import GetLatestCommonTimestamp
 

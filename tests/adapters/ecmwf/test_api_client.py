@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest.mock import ANY, Mock, call
 from datetime import datetime, timezone, date
-from probabilistic_load_forecast.adapters.ecwmf.api_client import ECWMFAPIClient
+from probabilistic_load_forecast.adapters.ecmwf.api_client import ECMWFAPIClient
 
 from probabilistic_load_forecast.domain.model import TimeInterval, WeatherVariable
 
@@ -9,7 +9,7 @@ from probabilistic_load_forecast.domain.model import TimeInterval, WeatherVariab
 def test_fetching_returns_file_locations():
     mock_client = Mock()
 
-    api_client = ECWMFAPIClient(target_dir=Path("./"), client=mock_client)
+    api_client = ECMWFAPIClient(target_dir=Path("./"), client=mock_client)
 
     interval = TimeInterval(
         start=datetime(2026, 3, 10, 0, 0, 0, tzinfo=timezone.utc),
@@ -76,7 +76,7 @@ def test_fetching_returns_file_locations():
 def test_forecast_issue_dates_for_one_day_interval():
     mock_client = Mock()
 
-    api_client = ECWMFAPIClient(target_dir=Path("./"), client=mock_client)
+    api_client = ECMWFAPIClient(target_dir=Path("./"), client=mock_client)
 
     interval = TimeInterval(
         start=datetime(2026, 3, 10, 0, 0, 0, tzinfo=timezone.utc),
@@ -94,7 +94,7 @@ def test_forecast_issue_dates_for_one_day_interval():
 def test_forecast_issue_dates_for_multiy_day_interval():
     mock_client = Mock()
 
-    api_client = ECWMFAPIClient(target_dir=Path("./"), client=mock_client)
+    api_client = ECMWFAPIClient(target_dir=Path("./"), client=mock_client)
 
     interval = TimeInterval(
         start=datetime(2026, 3, 10, 0, 0, 0, tzinfo=timezone.utc),
