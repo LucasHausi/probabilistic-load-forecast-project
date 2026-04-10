@@ -219,3 +219,21 @@ data_combined.parquet
 settings.json
 optuna_bayesian_lstm.db
 data/ecmwf/*
+
+# Ignore all auxiliary files
+thesis/*.aux
+thesis/*.log
+thesis/*.xml
+thesis/*.bbl
+thesis/*.blg
+thesis/*.synctex.gz
+thesis/*.fdb_latexmk
+thesis/*.bcf
+thesis/*.fls
+thesis/*.lof
+thesis/*.lot
+thesis/*.toc
+thesis/*.pdf
+
+notebooks/eda/*.pdf
+notebooks/eda/*.html
