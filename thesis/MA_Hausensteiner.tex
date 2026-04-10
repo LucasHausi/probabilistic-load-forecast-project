@@ -1,0 +1,335 @@
+%
+% FH Technikum Wien
+% !TEX encoding = UTF-8 Unicode
+% LTeX: language=en
+%
+% Erstellung von Master- und Bachelorarbeiten an der FH Technikum Wien mit Hilfe von LaTeX und der Klasse TWBOOK
+%
+% Um ein eigenes Dokument zu erstellen, müssen Sie folgendes ergänzen:
+% 1) Mit \documentclass[..] einstellen
+%    * Master- oder Bachelorarbeit
+%      * Master   ... Masterarbeit
+%      * Bachelor ... Bachelorarbeit
+%    * Sprache (english, german, ngerman)
+%    * Zitationsstandard (Harvard, IEEE) (Standard: IEEE)
+%    * Biber oder BibTeX als Literaturbackend (Biber, BibTeX) (Standard: Biber)
+% 2) Studiengang ausfüllen
+% 3) Deckblatt, Kurzfassung, etc. ausfüllen
+% 4) und die Arbeit schreiben (die verwendeten Literaturquellen in Literatur.bib eintragen)
+%
+% Getestet mit TeXstudio mit Zeichenkodierung utf-8 (=ansinew/latin1) und TexLive unter Ubuntu
+% Zu beachten ist, dass die Kodierung der Datei mit der Kodierung des paketes inputenc zusammen passt!
+% Die Kodierung der Datei twbook.cls MUSS ANSI betragen!
+% Bei der Verwendung von UTF8 muss nicht nur die Kodierung des Dokuments auf UTF8 gestellt sein, sondern auch die des BibTex-Files!
+%
+% Bugreports und Feedback bitte per E-Mail an latex@technikum-wien.at
+%
+% Version V2.24 von 2024-12-19 otrebski
+%
+\documentclass[Master,english,IEEE]{twbook}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+% bitte setzen Sie hier den Studiengang
+\degreecourse{Data Science}
+
+\addbibresource{Literatur.bib}
+%% Definieren Sie hier bei Bedarf weitere Literaturdatenbanken
+
+% Die nachfolgenden Pakete stellen sonst nicht benötigte Features zur Verfügung
+\usepackage{blindtext}
+
+%
+% Einträge für Deckblatt, Kurzfassung, etc.
+%
+\title{Interpretable energy load forecasting in renewable energy dominated grids}
+\author{Ing. Lucas Hausensteiner, BSc.}
+\studentnumber{2410854015}
+%\author{Titel Vorname Name, Titel\and{}Titel Vorname Name, Titel}
+%\studentnumber{XXXXXXXXXXXXXXX\and{}XXXXXXXXXXXXXXX}
+\supervisor{DI Dr. Momeni-Ortner}
+%\supervisor[Begutachter]{Titel Vorname Name, Titel}
+%\supervisor[Begutachterin]{Titel Vorname Name, Titel}
+%\secondsupervisor{Titel Vorname Name, Titel}
+%\secondsupervisor[Begutachter]{Titel Vorname Name, Titel}
+%\secondsupervisor[Begutachterinnen]{Titel Vorname Name, Titel}
+\place{Wien}
+\kurzfassung{\blindtext}
+\schlagworte{Schlagwort1, Schlagwort2, Schlagwort3, Schlagwort4}
+\outline{\blindtext}
+\keywords{Keyword1, Keyword2, Keyword3, Keyword4}
+%\acknowledgements{\blindtext}
+
+\begin{document}
+
+\maketitle
+
+%
+% .. und hier beginnt die eigentliche Arbeit. Viel Erfolg beim Verfassen!
+%
+\chapter{Introduction}
+\section{Motivation of the topic}
+The set goals to drastically reduce greenhouse gas emissions to net-zero C02 are considered one of the greatest challenges for humanity in the upcoming decades. As a consequence, the existing energy infrastructure must undergo a deep transformation not seen before during this decarbonization phase. The resulting increase in distributed energy resources (DER) like electric vehicles and heat pumps as well as photovoltaics will evidently change existing load and power generation patterns used for electric load forecasting today. 
+
+The field of energy load forecasting (ELF) is under active research due to its crucial role in modern power systems \cite{baurExplainabilityInterpretabilityElectric2024}. Accurate load forecasts support a wide range of applications including demand-response optimization, energy trading, power system scheduling, maintenance planning and capacity sizing for various stakeholders such as transmission system operators (TSO), distribution system operators (DSO), industrial consumers and building energy managers \cite{baurExplainabilityInterpretabilityElectric2024,andriopoulosShortTermElectric2021,yaprakdalMultivariateTimeSeries2023,liPowerLoadForecasting2022}. TSOs are responsible for maintaining a reliable grid and are challenged by the prospect of the changing electrical load and power generation patterns \cite{liPowerLoadForecasting2022,zhangTimeSeriesForecasting2003}.
+
+Easier to understand statistical models have been historically the go to approach for ELF including linear regression models as well as time series models such as ARIMA and its seasonal extension SARIMA \cite{zhangTimeSeriesForecasting2003,papalexopoulosRegressionbasedApproachShortterm1990}. These assume that electrical load can be determined by a linear combination of the previous load values and other exogenous variables \cite{andriopoulosShortTermElectric2021}. More recently, decomposition-based models such as Prophet have gained popularity as they offer flexible modelling of seasonality, trends and holiday effects while remaining interpretable \cite{bashirShortTermElectricity2022}.
+
+Interpretability is often a vaguely used term in the literature but Baur et al. defines it as the ability of humans to understand the models decision process just by understanding the models design \cite{baurExplainabilityInterpretabilityElectric2024}. Neural networks are nowadays gaining more attention in research because they can work with large amounts of data, have good performance and can handle complex relations of variables. Commonly used architectures in the literature include Long Short-Term Memory networks (LSTMs), XGBoost, one-dimensional Convolutional Neural Networks (1D CNNs), Support Vector Regression (SVR), as well as various ensemble and hybrid approaches that combine these methods \cite{andriopoulosShortTermElectric2021,yaprakdalMultivariateTimeSeries2023,liPowerLoadForecasting2022,bashirShortTermElectricity2022,simEXplainableAIXAIBased2022}. Yet these substantially more complex approaches do not offer insights into the model's intrinsic processes, leaving them opaque. This prompts a surge in explainability, defined as the ability to reason about the factors that influenced a model's prediction \cite{baurExplainabilityInterpretabilityElectric2024}. Currently a wide variety of model specific and agnostic explainability techniques for artificial intelligence exist (XAI). A notable work from Zheng et al. implements a such post-hoc XAI methods, like SHAP, for ELF which illustrates that these methods can be used to enhance the explainability of more complex models \cite{zhengElectricLoadForecasting2017}. However, the implementation does not include confidence intervals, leaving operators without a clear sense of prediction risk.
+This represents a problem that often gets mentioned within literature, which is the lack of a quantified uncertainty within the point estimates from interpretable models \cite{baurExplainabilityInterpretabilityElectric2024,bazionisReviewDeterministicProbabilistic2021}. TSOs must reliably assess risks and when to plan reserves. Traditional point forecasts provide a single expected load value but no information on the uncertainty or risk around that prediction. This is a reason why the domain of probabilistic load forecasting (PLF) receives growing recognition, where the models not only provide point forecasts but also depict the uncertainty in their estimates over prediction intervals or scenarios.
+
+Generally, Baur et al. describe how the different types of PLF models can be assigned in three distinct groups. First, there are deterministic models that transform into ensemble learners when they are given different input scenarios. Second, models that implicitly learn a posterior distribution and lastly post-process a point forecast model by including residual likelihood functions \cite{baurExplainabilityInterpretabilityElectric2024}.
+
+Although such PLF models can yield prediction intervals, they have rarely been paired with explainability techniques. Furthermore, new approaches are being researched based on the foundational work by Blundell et al. on Bayesian neural networks and Monte Carlo dropout. Their work demonstrates how to derive prediction intervals via weight distributions \cite{blundellWeightUncertaintyNeural2015}. Yet integrating these uncertainty estimates with post-hoc explanations remains an open challenge in ELF.
+
+Overall, while advances in deep learning have improved the accuracy of electricity load forecasts, especially with architectures like LSTM, they often suffer from a lack of interpretability and fail to provide reliable uncertainty estimates. Which is determined to be critical for real-world decision-making in power systems. This limitation is particularly problematic for TSOs, who must make high-stakes operational and planning decisions under growing uncertainty caused by renewable energy integration, demand variability and climate conditions.
+
+Thus, there is a growing need for forecasting models that not only deliver high predictive performance but also offer interpretable insights and well-calibrated uncertainty estimates. Bridging this gap between accuracy, transparency and risk-awareness is the motivation of this thesis. 
+
+
+
+
+
+
+\section{Research questions}
+
+The core research of this thesis engages with the question, how advanced explanibility methods and uncertainty quantification can be applied to short term electricity load forecasting.
+
+To address this broader queston, the following subquestions are explored:
+
+\begin{enumerate}
+  \item What are the main influence factors on the day-ahead load, and must
+  these be preprocessed in this context?
+  \begin{description}
+    \item[Method:] Data engineering and data analysis.
+    \item[Expected Output:] Identified key drivers and a justified
+    preprocessing pipeline.
+  \end{description}
+
+  \item How do probabilistic forecasts from a Bayesian LSTM compare to those
+  from standard deterministic models in terms of RMSE, MAE, and model
+  interpretability?
+  \begin{description}
+    \item[Method:] Comparative model evaluation.
+    \item[Expected Output:] Quantitative and qualitative comparison of forecast performance and interpretability.
+  \end{description}
+
+  \item How does embedding Bayesian uncertainty into LSTM forecasts impact the
+  stability and fidelity of post-hoc SHAP explanations, measured via
+  confidence intervals over SHAP values?
+  \begin{description}
+    \item[Method:] SHAP-based explainability analysis under uncertainty.
+    \item[Expected Output:] Assessment of explanation stability and fidelity
+    under probabilistic forecasting.
+  \end{description}
+\end{enumerate}
+
+
+
+These research questions shall contribute to bridge the gap between advanced machine learning accuracy and operational transparency under uncertainty. To the authors best knowledge there is no existing research on the topic of comparing LSTM with a Bayesian LSTM architecture in terms of explainability under uncertainty in electricity load forecasting.
+
+
+
+\chapter{Methodology}
+
+\section{Data Sources}
+
+The data used in this thesis comprises primarily quantitative datasets from three main sources: historical electricity load data from the ENTSO-E Transparency Platform, meteorological reanalysis data from the ERA5 (ERA5-Land hourly data from 1950 to present) \cite{ERA5LandHourlyData} dataset and weather forecasts from ECMWF Open data subset \cite{OpenData2021}.
+
+The ENTSO-E data provides hourly and sub-hourly historical electricity load for Austria, reflecting aggregate national energy consumption patterns at high-voltage levels. It is structured as numerical time series data accessible programmatically through the ENTSO-E API \cite{TransparencyPlatformRestful}. This dataset is publicly accessible and does not require additional consent from external parties. Only the data of the Austrian bidding zone, created after the split of the former bidding zone (DE-AT-LU) in October 2018 is used.
+
+The publicly available ERA5 dataset, obtained via the Copernicus Climate Data Store (CDS) API contains hourly weather variables such as temperature, solar radiation and wind speed. ERA5 data are provided in netCDF format, capturing spatially gridded meteorological parameters. Given the 3-month latency in the finalized ERA5 dataset, the provisional ERA5T dataset will be employed to bridge the gap for recent data. ERA5T is updated daily but includes data up to 5-7 days prior to the current date, making it suitable for near-real-time applications but subject to later revisions. To transform these spatial datasets into usable time series for modeling, the data is spatially aggregated to produce country-level averages or specific point-based series relevant for bidding zone of Austria.
+
+For day-ahead forecasting, additional data is needed to fill in the missing gaps for the meteorlogical variables. This is why ECMWF numerical weather forecasts are ingested alongside. ECMWF forecasts conviniently provide the meteorological predictions for the same variables with lead times suitable for day-ahead applications. These data are typically available in GRIB, which are similarly spatially aggregated to generate forecasting-ready time series.
+
+\section{Data Engineering and Preprocessing}
+
+How is the data prepared for the lstm? Prophet?
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{PICs/FFill.drawio.png}
+\caption{Weather Variables must be forward filled to match the 15 min resolution of the load timeseries }\label{ForwardFill}
+\end{figure}
+
+\section{Experiment Tracking}
+
+All experiments are run locally using Jupyter Notebooks. To ensure reproducability the intermediate metrics and final models get logged to a local MLFlow-Server instance.
+
+\section{Model Architectures and Implementation}
+
+\subsection{Bayesian LSTM}
+
+The implementation of a bayesian LSTM variant, relies on the former implementation BLiTZ \cite{pieroespositoBLiTZBayesianLayers2020} which uses a similar programatic interface as pytorch. The model architechture is shown in Figure \ref{BayesianLSTMarchitercture}. 
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{PICs/BayesianLSTMArchitecture.drawio.png}
+\caption{Input and output structure for the layesian LSTM }\label{BayesianLSTMarchitercture}
+\end{figure}
+
+The model recieves a sequence of $x_j$ input features of horizon $h=672$ which corresponds to a lookback of 7 days based on the 15 min interval given by the structure of the load series. The output is a one dimensional vector of length two times of the forecasting horizon ($horizon_{forecasting} = 96$).
+
+\section{Evaluation Framework}
+
+
+\chapter{Results}
+
+\chapter{Discussion}
+\subsection{Main findings}
+\subsection{Comparison with previous work}
+\subsection{Implications}
+\subsection{Limitations}
+
+\noindent Querverweise werden in \LaTeX{} automatisch erzeugt und verwaltet, damit sie leicht aktualisiert werden können. Hier wird zum Beispiel auf Abbildung \ref{Abb1} verwiesen.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+\caption{Beispiel für die Beschriftung eines Buchrückens.}\label{Abb1}
+\end{figure}
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+\caption{2. Beispiel für die Beschriftung eines Buchrückens.}\label{Abb2}
+\end{figure}
+
+Und hier ist ein Verweis auf Tabelle \ref{tab1}. Das gezeigte Tabellenformat ist nur ein Beispiel. Tabellen können individuell gestaltet werden.
+
+\begin{table}[!htbp]
+\centering
+\caption{Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab1}
+\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
+Datum & Thema & Raum\\\hline
+20.08.2008 & Graphentheorie & HS 3.13\\
+01.10.2008 & Biomathematik & HS 1.05\\\hline
+\end{tabular}
+\end{table}
+\begin{table}[!htbp]
+\centering
+\caption{2. Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab2}
+\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
+Datum & Thema & Raum\\\hline
+20.08.2008 & Graphentheorie & HS 3.13\\
+01.10.2008 & Biomathematik & HS 1.05\\\hline
+\end{tabular}
+\end{table}
+
+Hier wird auf die Formel \ref{Gl1} verwiesen.
+
+\begin{align}
+x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl1}
+\end{align}
+\begin{align}
+x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl2}
+\end{align}
+
+Literaturverweise sollten automatisch verwaltet werden, vor allem, wenn es viele Quellenverweise gibt. Beispiele sind  \cite{201751stAnnual2017}. Das verwendete Zitierformat (bzw.~das Format des Literaturverzeichnisses) ist entspechend der Vorgaben der Studiengänge zu wählen.
+Es wird dringend empfohlen, Biber oder BibTeX~zu verwenden (wie in diesen Beispielen).
+
+\chapter{Dritte Überschrift der Tiefe 1 (chapter)}
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+\caption{3. Beispiel für die Beschriftung eines Buchrückens.}\label{Abb3}
+\end{figure}
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+\caption{4. Beispiel für die Beschriftung eines Buchrückens.}\label{Abb4}
+\end{figure}
+
+
+\begin{table}[!htbp]
+\centering
+\caption{3. Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab3}
+\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
+Datum & Thema & Raum\\\hline
+20.08.2008 & Graphentheorie & HS 3.13\\
+01.10.2008 & Biomathematik & HS 1.05\\\hline
+\end{tabular}
+\end{table}
+\begin{table}[!htbp]
+\centering
+\caption{4. Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab4}
+\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
+Datum & Thema & Raum\\\hline
+20.08.2008 & Graphentheorie & HS 3.13\\
+01.10.2008 & Biomathematik & HS 1.05\\\hline
+\end{tabular}
+\end{table}
+
+\begin{align}
+x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl3}
+\end{align}
+\begin{align}
+x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl4}
+\end{align}
+
+The following commands are provided to provide quality of life improvements
+\begin{itemize}
+    \item \texttt{\textbackslash{}citepic}
+    the usage of the command is depicted in figure~\ref{Abb5}.
+    \item \texttt{\textbackslash{}citefig}
+    the usage of the command is depicted in figure~\ref{Abb6}.
+    \item \texttt{\textbackslash{}citefigm}
+    the usage of the command is depicted in figure~\ref{Abb7}.
+\end{itemize}
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+    \caption{Usage of the command \texttt{\textbackslash{}citepic}: \citepic{201751stAnnual2017}}\label{Abb5}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+    \caption{usage of the command \texttt{\textbackslash{}citefig}: \citefig{201751stAnnual2017}{30}}\label{Abb6}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{PICs/buchruecken}
+    \caption{usage of the command \texttt{\textbackslash{}citefigm}: \citefigm{201751stAnnual2017}{30}}\label{Abb7}
+\end{figure}
+
+% Hier können Sie Ihre KI-Tools dokumentieren. Diese werden automatisch in eine Tabelle integriert.
+\aitoolentry{DeepL Translate}{Translation of an article in English}{Source (XXX), Chapter X on page X-X}
+\aitoolentry{Chat GPT 4.0}{Grammar and Spelling}{"Please list issues with spelling and grammar in the following text: ...", Entire document}
+
+%
+% Hier beginnen die Verzeichnisse.
+%
+\clearpage
+\printbibliography
+\clearpage
+
+% Das Abbildungsverzeichnis
+\listoffigures
+\clearpage
+
+% Das Tabellenverzeichnis
+\listoftables
+\clearpage
+
+% Das Verzeichnis über die verwendeten KI-Tools
+\listaitools
+\clearpage
+
+\phantomsection
+\addcontentsline{toc}{chapter}{\listacroname}
+\chapter*{\listacroname}
+\begin{acronym}[XXXXX]
+    \acro{ABC}[ABC]{Alphabet}
+    \acro{WWW}[WWW]{world wide web}
+    \acro{ROFL}[ROFL]{Rolling on floor laughing}
+\end{acronym}
+
+%
+% Hier beginnt der Anhang.
+%
+\clearpage
+\appendix
+\chapter{Anhang A}
+\clearpage
+\chapter{Anhang B}
+\end{document}
