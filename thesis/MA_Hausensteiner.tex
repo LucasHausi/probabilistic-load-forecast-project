@@ -29,6 +29,7 @@
 \documentclass[Master,english,IEEE]{twbook}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{placeins}
 
 
 % bitte setzen Sie hier den Studiengang
@@ -55,10 +56,14 @@
 %\secondsupervisor[Begutachter]{Titel Vorname Name, Titel}
 %\secondsupervisor[Begutachterinnen]{Titel Vorname Name, Titel}
 \place{Wien}
-\kurzfassung{\blindtext}
-\schlagworte{Schlagwort1, Schlagwort2, Schlagwort3, Schlagwort4}
-\outline{\blindtext}
-\keywords{Keyword1, Keyword2, Keyword3, Keyword4}
+\kurzfassung{Diese Masterarbeit untersucht, wie Interpretierbarkeit und Unsicherheitsquantifizierung in die Vorhersage elektrischer Lasten für die nächsten 24 Stunden die österreichische Gebotszone integriert werden können. Dazu werden 15-minütige Lastdaten der ENTSO-E Transparency Platform mit meteorologischen Daten aus ERA5 und ECMWF kombiniert. Verglichen werden ein interpretiertes statistisches Basismodell (Prophet), ein deterministisches LSTM sowie ein Bayesian LSTM. Die Datenaufbereitung umfasst die räumliche Aggregation der Wetterdaten auf Österreich, die Umwandlung akkumulativer Wettergrößen in Raten, die zeitliche Angleichung an die 15-Minuten-Auflösung sowie die Verschiebung der Wetterprädiktoren um 24 Stunden zur Abbildung des Day-Ahead-Szenarios. Die Feature-Evaluierung zeigt, dass eine Kombination aus Lastverlauf, einfachen Kalendermerkmalen und 24-Stunden-Wettervorhersagen die beste Balance zwischen Prognosegüte und Modellkomplexität liefert. Das deterministische LSTM erzielt die beste Punktprognosegüte mit einem RMSE von 341.09 MW und einem MAE von 218.39 MW. Das Bayesian LSTM erreicht eine ähnliche RMSE von 353.59 MW, weist jedoch einen höheren MAE von 250.21 MW auf. Prophet schneidet mit einem RMSE von 521.33 MW und einem MAE von 418.77 MW deutlich schwächer ab. Zur Interpretationsanalyse wird SHAP auf multihorizontale Prognosen in verschiedenen Tagesregimen angewendet. Dabei zeigt sich, dass der jüngste Lastverlauf den stärksten Einfluss auf die Prognosen hat, gefolgt vom Wochentagsindikator, während Wettervariablen vorwiegend ergänzende Information liefern. Für das Bayesian LSTM wird die SHAP-Analyse über mehrere stochastische Vorwärtsläufe wiederholt. Die resultierenden Attributionshierarchien erweisen sich als weitgehend stabil, wodurch sich Unsicherheit nicht nur in der Prognose, sondern auch in der Erklärung der Prognose untersuchen lässt. Die Analyse der PIT-Histogramme zeigt jedoch, dass die probabilistischen Vorhersagen des Bayesian LSTM ohne nachträgliche Kalibrierung nicht zufriedenstellend kalibriert sind. Insgesamt zeigt die Arbeit, dass interpretierbare probabilistische Lastprognosen prinzipiell möglich sind, die Stabilität der Erklärungen jedoch derzeit belastbarer ist als die Qualität der ungekalibrierten Unsicherheitsabschätzung.}
+
+\schlagworte{Elektrische Lastprognose, probabilistische Prognose, Bayesian LSTM, SHAP, Interpretierbarkeit, Unsicherheitsquantifizierung}
+
+
+\outline{This thesis investigates how interpretability and uncertainty quantification can be integrated into day-ahead electricity load forecasting for the Austrian bidding zone. For this purpose, 15-minute load data from the ENTSO-E Transparency Platform are combined with meteorological data from ERA5 and ECMWF. Three model classes are compared: an interpretable statistical baseline (Prophet), a deterministic LSTM, and a Bayesian LSTM. The preprocessing pipeline includes spatial aggregation of weather data to Austria, conversion of accumulated variables into rates, alignment to the 15-minute load resolution, and a 24-hour shift of weather predictors to reflect the day-ahead forecasting task. Feature evaluation shows that a combination of load history, simple calendar indicators, and 24-hour-ahead weather covariates provides the best balance between predictive performance and model complexity. The deterministic LSTM achieves the best point forecast accuracy with an RMSE of 341.09 MW and an MAE of 218.39 MW. The Bayesian LSTM reaches a similar RMSE of 353.59 MW but a higher MAE of 250.21 MW. Prophet performs substantially worse with an RMSE of 521.33 MW and an MAE of 418.77 MW. For interpretability, SHAP is applied to multi-horizon forecasts across several day-part regimes. The results show that recent load history is the dominant driver of the forecasts, followed by the weekday indicator, while weather variables play a mainly complementary role. For the Bayesian LSTM, SHAP is repeated over multiple stochastic forward passes. The resulting attribution hierarchies remain largely stable, making it possible to analyze uncertainty not only in the forecast itself but also in its explanation. However, PIT histogram analysis shows that the Bayesian LSTM does not provide satisfactorily calibrated predictive distributions without post-hoc adjustment. Overall, the thesis demonstrates that interpretable probabilistic load forecasting is feasible in principle, but that explanation stability is currently more robust than raw uncertainty quality.}
+
+\keywords{Electricity load forecasting, probabilistic forecasting, Bayesian LSTM, SHAP, interpretability, uncertainty quantification}
 %\acknowledgements{\blindtext}
 
 \begin{document}
@@ -70,33 +75,38 @@
 %
 \chapter{Introduction}
 \section{Motivation of the topic}
-The set goals to drastically reduce greenhouse gas emissions to net-zero C02 are considered one of the greatest challenges for humanity in the upcoming decades. As a consequence, the existing energy infrastructure must undergo a deep transformation not seen before during this decarbonization phase. The resulting increase in distributed energy resources (DER) like electric vehicles and heat pumps as well as photovoltaics will evidently change existing load and power generation patterns used for electric load forecasting today. 
+The set goals to drastically reduce greenhouse gas emissions to net-zero CO$_2$ are considered one of the greatest challenges for humanity in the upcoming decades. As a consequence, the existing energy infrastructure must undergo a deep transformation not seen before during this decarbonization phase. The resulting increase in distributed energy resources (DER) like electric vehicles and heat pumps as well as photovoltaics will evidently change existing load and power generation patterns used for electric load forecasting today. 
 
 The field of energy load forecasting (ELF) is under active research due to its crucial role in modern power systems \cite{baurExplainabilityInterpretabilityElectric2024}. Accurate load forecasts support a wide range of applications including demand-response optimization, energy trading, power system scheduling, maintenance planning and capacity sizing for various stakeholders such as transmission system operators (TSO), distribution system operators (DSO), industrial consumers and building energy managers \cite{baurExplainabilityInterpretabilityElectric2024,andriopoulosShortTermElectric2021,yaprakdalMultivariateTimeSeries2023,liPowerLoadForecasting2022}. TSOs are responsible for maintaining a reliable grid and are challenged by the prospect of the changing electrical load and power generation patterns \cite{liPowerLoadForecasting2022,zhangTimeSeriesForecasting2003}.
 
 Easier to understand statistical models have been historically the go to approach for ELF including linear regression models as well as time series models such as ARIMA and its seasonal extension SARIMA \cite{zhangTimeSeriesForecasting2003,papalexopoulosRegressionbasedApproachShortterm1990}. These assume that electrical load can be determined by a linear combination of the previous load values and other exogenous variables \cite{andriopoulosShortTermElectric2021}. More recently, decomposition-based models such as Prophet have gained popularity as they offer flexible modelling of seasonality, trends and holiday effects while remaining interpretable \cite{bashirShortTermElectricity2022}.
 
-Interpretability is often a vaguely used term in the literature but Baur et al. defines it as the ability of humans to understand the models decision process just by understanding the models design \cite{baurExplainabilityInterpretabilityElectric2024}. Neural networks are nowadays gaining more attention in research because they can work with large amounts of data, have good performance and can handle complex relations of variables. Commonly used architectures in the literature include Long Short-Term Memory networks (LSTMs), XGBoost, one-dimensional Convolutional Neural Networks (1D CNNs), Support Vector Regression (SVR), as well as various ensemble and hybrid approaches that combine these methods \cite{andriopoulosShortTermElectric2021,yaprakdalMultivariateTimeSeries2023,liPowerLoadForecasting2022,bashirShortTermElectricity2022,simEXplainableAIXAIBased2022}. Yet these substantially more complex approaches do not offer insights into the model's intrinsic processes, leaving them opaque. This prompts a surge in explainability, defined as the ability to reason about the factors that influenced a model's prediction \cite{baurExplainabilityInterpretabilityElectric2024}. Currently a wide variety of model specific and agnostic explainability techniques for artificial intelligence exist (XAI). A notable work from Zheng et al. implements a such post-hoc XAI methods, like SHAP, for ELF which illustrates that these methods can be used to enhance the explainability of more complex models \cite{zhengElectricLoadForecasting2017}. However, the implementation does not include confidence intervals, leaving operators without a clear sense of prediction risk.
+Interpretability is often a vaguely used term in the literature but Baur et al. defines it as the ability of humans to understand the models decision process just by understanding the models design \cite{baurExplainabilityInterpretabilityElectric2024}. Neural networks are nowadays gaining more attention in research because they can work with large amounts of data, have good performance and can handle complex relations of variables. Commonly used architectures in the literature include Long Short-Term Memory networks (LSTMs), XGBoost, one-dimensional Convolutional Neural Networks (1D CNNs), Support Vector Regression (SVR), as well as various ensemble and hybrid approaches that combine these methods \cite{andriopoulosShortTermElectric2021,yaprakdalMultivariateTimeSeries2023,liPowerLoadForecasting2022,bashirShortTermElectricity2022,simEXplainableAIXAIBased2022}. Yet these substantially more complex approaches do not offer insights into the model's intrinsic processes, leaving them opaque. This prompts a surge in explainability, defined as the ability to reason about the factors that influenced a model's prediction \cite{baurExplainabilityInterpretabilityElectric2024}. Currently a wide variety of model specific and agnostic explainability techniques for artificial intelligence exist (XAI). A notable work from Zheng et al. implements a such post-hoc XAI methods, like SHAP, for ELF which illustrates that these methods can be used to enhance the explainability of more complex models \cite{zhengElectricLoadForecasting2017}. However, the implementation does not include uncertainty intervals, leaving operators without a clear sense of prediction risk.
 This represents a problem that often gets mentioned within literature, which is the lack of a quantified uncertainty within the point estimates from interpretable models \cite{baurExplainabilityInterpretabilityElectric2024,bazionisReviewDeterministicProbabilistic2021}. TSOs must reliably assess risks and when to plan reserves. Traditional point forecasts provide a single expected load value but no information on the uncertainty or risk around that prediction. This is a reason why the domain of probabilistic load forecasting (PLF) receives growing recognition, where the models not only provide point forecasts but also depict the uncertainty in their estimates over prediction intervals or scenarios.
 
 Generally, Baur et al. describe how the different types of PLF models can be assigned in three distinct groups. First, there are deterministic models that transform into ensemble learners when they are given different input scenarios. Second, models that implicitly learn a posterior distribution and lastly post-process a point forecast model by including residual likelihood functions \cite{baurExplainabilityInterpretabilityElectric2024}.
 
 Although such PLF models can yield prediction intervals, they have rarely been paired with explainability techniques. Furthermore, new approaches are being researched based on the foundational work by Blundell et al. on Bayesian neural networks and Monte Carlo dropout. Their work demonstrates how to derive prediction intervals via weight distributions \cite{blundellWeightUncertaintyNeural2015}. Yet integrating these uncertainty estimates with post-hoc explanations remains an open challenge in ELF.
 
-Overall, while advances in deep learning have improved the accuracy of electricity load forecasts, especially with architectures like LSTM, they often suffer from a lack of interpretability and fail to provide reliable uncertainty estimates. Which is determined to be critical for real-world decision-making in power systems. This limitation is particularly problematic for TSOs, who must make high-stakes operational and planning decisions under growing uncertainty caused by renewable energy integration, demand variability and climate conditions.
+Overall, while advances in deep learning have improved the accuracy of electricity load forecasts, especially with architectures like LSTM, they often suffer from a lack of interpretability and fail to provide reliable uncertainty estimates. Which is determined to be critical for real-world decision-making in power systems. This limitation is particularly problematic for TSOs, who must make high-stakes operational and planning decisions under growing uncertainty caused by renewable energy integration, demand variability and climate conditions. Thus, there is a growing need for forecasting models that not only deliver high predictive performance but also offer interpretable insights and well-calibrated uncertainty estimates. Bridging this gap between accuracy, transparency and risk-awareness is the motivation of the thesis.
 
-Thus, there is a growing need for forecasting models that not only deliver high predictive performance but also offer interpretable insights and well-calibrated uncertainty estimates. Bridging this gap between accuracy, transparency and risk-awareness is the motivation of this thesis. 
+\section{}{Research Gap}
 
+The literature has made progress to electricity load forecasting along two related but still only partially connected directions. First, probabilistic forecasting experiments based on Bayesian deep learning have been conducted to quantify forecast uncertainty in addition to point prediction performance. A closely related work of Xu et al. \cite{xuProbabilisticElectricalLoad2022} developed Bayesian RNN, LSTM, and GRU models for probabilistic building electrical load forecasting and modeled both epistemic and aleatoric uncertainty through a dropout-based Bayesian approximation. Their results show that Bayesian recurrent forecasting for electrical load is not new in itself and that Bayesian LSTM architectures can perform well, at least in a building-level forecasting setting.
 
+Second, other works have also shown that explainability methods such as SHAP can provide viable explanations for time-series forecasting models. Wu et al. \cite{wuExplainableFrameworkLoad2022} integrates SHAP into a deterministic LSTM-based multi-task forecasting framework in order to obtain both global and local explanations for an integrated energy system. In addition, emerging work such as C-SHAP by Jutte et al. \cite{jutteCSHAPTimeSeries2025} suggests that SHAP explanations for time series can also be grouped at a higher conceptual level, which is relevant when low-level lag-wise attributions would otherwise become difficult to interpret. Taken together, these studies show that SHAP-based interpretation of forecasting models is an active and relevant research direction.
 
+However, these two strands of research are still rarely brought together in one comparable framework. Xu et al. focuses on probabilistic forecasting performance, lag selection and forecast horizon effects, but does not investigate post-hoc explanation stability under stochastic Bayesian forward passes. In Contrast, Wu et al. demonstrates that SHAP can be useful for interpreting forecasting models, but they do not examine Bayesian probabilistic forecasting, predictive calibration, or uncertainty-aware explanation analysis. As a result, existing studies show either that Bayesian recurrent forecasting is feasible or that SHAP-based interpretation is useful, but they do not show evidence on how probabilistic neural forecasting models behave when both predictive uncertainty and explanation stability are assessed toghether.
 
+This thesis addresses that gap in a deliberately focused setting. It explores day-ahead electricity load forecasting for the Austrian bidding zone at a 15-minute temporal resolution and compares Prophet, a deterministic LSTM, and a Bayesian LSTM. Austria is used as a case study for a renewable-energy-dominated European grid context rather than as a universal proxy of all power systems. The main objective is not to provide a comprehensive benchmark across all forecasting horizons, market areas or model families. It also does to implement the full operational forecasting procedures of transmission system operators. Instead, the thesis investigates whether probabilistic forecasting and post-hoc explainability can be combined in a consistent and practically meaningful way within this specific energy system-level setting.
 
+To the author's best knowledge, research explicitly combining Bayesian LSTM-based probabilistic load forecasting with SHAP-based analysis of explanation stability under model uncertainty remains limited.
 
 \section{Research questions}
 
-The core research of this thesis engages with the question, how advanced explanibility methods and uncertainty quantification can be applied to short term electricity load forecasting.
+The core research of this thesis engages with the question, how explainability methods and uncertainty quantification can be applied to short term electricity load forecasting. 
 
-To address this broader queston, the following subquestions are explored:
+To address this broader question, the following subquestions are explored:
 
 \begin{enumerate}
   \item What are the main influence factors on the day-ahead load, and must
@@ -116,185 +126,436 @@ To address this broader queston, the following subquestions are explored:
   \end{description}
 
   \item How does embedding Bayesian uncertainty into LSTM forecasts impact the
-  stability and fidelity of post-hoc SHAP explanations, measured via
-  confidence intervals over SHAP values?
+stability of post-hoc SHAP explanations, measured via empirical uncertainty
+intervals over SHAP values?
   \begin{description}
     \item[Method:] SHAP-based explainability analysis under uncertainty.
-    \item[Expected Output:] Assessment of explanation stability and fidelity
+    \item[Expected Output:] Assessment of explanation stability
     under probabilistic forecasting.
   \end{description}
 \end{enumerate}
 
-
-
-These research questions shall contribute to bridge the gap between advanced machine learning accuracy and operational transparency under uncertainty. To the authors best knowledge there is no existing research on the topic of comparing LSTM with a Bayesian LSTM architecture in terms of explainability under uncertainty in electricity load forecasting.
-
-
+These research questions shall contribute to bridge the gap between advanced machine learning accuracy and operational transparency under uncertainty. 
 
 \chapter{Methodology}
 
-\section{Data Sources}
 
+\section{Model Architectures and Implementation}
+
+\subsection{Prophet}
+Prophet is used as an interpretable statistical benchmark. As described in the work of Bashir et al. \cite{bashirShortTermElectricity2022}, a standard single prophet model can achieve reasonable forecasting performance, while being inherently interpretable by its architecture. Altough ARIMA and SARIMA models are also widely recognized standard statistical forecasting approaches, the robustness of Prophet as well as the automatic handling of seasonal patterns and trend changes make it comparably fast to deploy and and verify, especially in comparison with the longer tuning process of LSTM-based models. This is why it is chosen as a standard baseline to compare against. In this work, Prophet is specified with yearly, weekly and daily seasonal components as well as six external weather regressors.
+
+The model requires a tabular input representation in which the timestamp is stored in a column named \texttt{ds} and the target variable in a column named \texttt{y}. The merged 15-minute dataset is therefore transformed from an indexed time series into a data frame that follows this naming convention. All exogenous variables are added as additional regressor columns. In the final model specification, these regressors are the 24-hour-ahead weather variables together with the calendar indicators.
+
+Model assessment is conducted with a 5-fold \texttt{TimeSeriesSplit} on the training period. In each fold, Prophet is fitted only on past observations and then used to predict the corresponding holdout period from the known future regressor values. Since Prophet produces one point forecast per timestamp, its quarter-hourly predictions are regrouped into overlapping 96-step sequences so that the reported errors are directly comparable with the direct multi-horizon neural models. After cross-validation, the model is refitted on the combined training and validation periods and finally evaluated on the held-out test set.
+
+\subsection{LSTM}
+
+The deterministic neural benchmark is implemented as a sequence-to-vector LSTM in PyTorch. A multivariate input sequence of length 672, corresponding to seven days of quarter-hourly observations, is processed by an LSTM layer stack. The hidden state of the final time step is passed to a fully connected output layer that directly predicts the full 96-step day-ahead horizon. This direct multi-output formulation was preferred over recursive one-step forecasting in order to avoid the accumulation of prediction errors across the horizon.
+
+Subsequently before training, both the input features and the target load series are scaled using a robust transformation fitted on the training set only. This choice reduces the influence of outliers, particularly in precipitation-related variables in the scaling process.
+
+After scaling, the multivariate time series is rearranged into overlapping input-output sequences. Each input sample contains the previous 672 observations, corresponding to seven days at a 15-minute resolution, and each target sample contains the subsequent 96 load observations, corresponding to the day-ahead forecasting horizon. The resulting tensor representation can then be passed directly to the recurrent network.
+
+Before final model training, several candidate feature sets were compared in a preliminary temporal cross-validation experiment. The final experiments also contains a feature set of the current load, weekday and holiday indicators, and the four 24-hour-ahead weather variables. A subsequent Optuna search with 50 trials explored hidden size, number of LSTM layers, dropout, learning rate, batch size, and weight decay. The final reported model was trained with a hidden size of 224, two recurrent layers, dropout of 0.15, learning rate $3 \cdot 10^{-4}$, weight decay $10^{-5}$, and batch size 128. Optimization uses Adam and mean squared error loss, gradients are clipped to a norm of 1.0, and early stopping with a patience of 10 epochs is applied based on the validation error. The best validation state is retained for the final test evaluation.
+
+\subsection{Bayesian LSTM}
+
+The implementation of a Bayesian LSTM variant relies on the BLiTZ library \cite{pieroespositoBLiTZBayesianLayers2020}, which provides variational Bayesian layers with a programmatic interface similar to PyTorch. The model architecture is shown in Figure \ref{BayesianLSTMarchitercture}. 
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{PICs/BayesianLSTMArchitecture.drawio.png}
+\caption{Input and output structure for the Bayesian LSTM.}\label{BayesianLSTMarchitercture}
+\end{figure}
+
+The model receives a sequence of $x_j$ input features of horizon $h=672$, which corresponds to a lookback of seven days at a 15-minute resolution. In contrast to the deterministic LSTM, the Bayesian variant uses a variational recurrent layer and produces an output vector of length $2 \cdot horizon_{forecasting}$ with $horizon_{forecasting}=96$, as both predictive means and variance parameters are required for the probabilistic objective.
+
+Concretely, the final time step representation of the Bayesian recurrent layer is mapped by a linear output layer to 192 values, which are interpreted as 96 predictive means and 96 raw variance parameters. A softplus transformation combined with a small positive constant ensures strictly positive predictive variances. Training minimizes a sampled evidence lower bound (ELBO), where the data term is given by a Gaussian negative log-likelihood and the regularization term is the Kullback-Leibler divergence induced by variational inference. The KL contribution is scaled by the inverse training-set size and linearly warmed up during the first 30 epochs.
+
+As for the deterministic model, Bayesian model selection is supported by an Optuna search with 50 trials. The search space includes hidden size, learning rate, batch size, weight decay, the number of ELBO samples per optimization step, and the number of KL warm-up epochs. The final reported configuration uses a hidden size of 64, batch size 64, learning rate $3 \cdot 10^{-4}$, weight decay $10^{-5}$, and three ELBO samples during training. Early stopping with a patience of five validation checks is applied over a maximum of 60 epochs. Validation is performed every third epoch using 10 Monte Carlo forward passes per batch, while test predictions are based on 70 stochastic forward passes. The predictive mean is estimated by averaging the sampled means, and the predictive variance is computed as the sum of the mean predicted variance and the variance of the sampled means, thereby combining aleatoric and epistemic uncertainty in a single forecast distribution.
+
+
+IMPLEMENT:
+The selected lookback window of seven days was motivated by domain knowledge about weekly electricity demand structure and by computational feasibility, but it was not exhaustively optimized against a broad range of alternative sequence lengths.
+
+
+\section{Interpretability}
+
+Interpretability in machine is one of the main measurements of why humans can trust the outputs of a model. \cite{InterpretableMachineLearning}. There are many different techniques for a model to be interpretable. And either it is interpretable by design or can be made so by post-hoc methods \cite{baurExplainabilityInterpretabilityElectric2024}. In this examplary thesis the applied models are of different architectures and namely recurrent neural networks are not known to be inherently interpretable by desingn. That is the reason why this thesis is concerned about model-agnostic interpretability approaches, because in a data science field different model types are dynamic and a forecasting model is not guaranteed to be employed for many years if a new competing model gets released.
+
+In this thesis, SHAP was selected as the primary post-hoc interpretability method because it provides model-agnostic, local feature attributions that can be applied consistently across all considered forecasting models. This is particularly important for a multistep time-series forecasting setting, where the objective is not only to explain individual predictions, but also to compare explanations across forecast horizons and to aggregate them into meaningful operating regimes such as night, morning ramp, midday, afternoon and late evening demand. 
+
+In contrast to PDP and ICE describe marginal feature-effect relationships, while SHAP yields an additive decomposition of each prediction into signed feature contributions relative to a baseline. This makes it better suited for identifying which variables increase or decrease the forecast in a given regime. Compared with LIME, SHAP was preferred because LIME depends on locally fitted surrogate models and random perturbations, whose definition is less straightforward for structured sequential inputs and whose explanations may vary noticeably across runs \cite{InterpretableMachineLearning}. Since the input variables in load forecasting are strongly correlated over time, PDP and ICE would also be more difficult to interpret consistently across lagged, calendar, and weather-based predictors. For these reasons, SHAP offers the best balance between consistency, model comparability, and interpretability for the multistep forecasting used in this thesis.
+
+Other literature has shown similar applicability of SHAP to the forecasting domain like  \cite{ chakrabortyScenariobasedPredictionClimate2021, mitrentsisInterpretableProbabilisticModel2022} which achieved local explanations for individual forecasts as well as global interpretations by aggregating over many data points.
+
+In this thesis, this idea is extended to the electricity load forecasting setting and adapted to the specific structure of the implemented models. SHAP is used first on the local level to decompose selected forecasts into signed feature contributions and therefore showing how recent load values, calendar variables and weather information influence a single predicted horizon. For the LSTM-based models, the explanation setup groups the sequential input into feature-wise contributions across the full lookback window, so that the interpretation remains at the level of meaningful predictors instead of hundreds of individual lag positions. For Prophet, the same SHAP framework is applied to the regressor inputs of the statistical forecasting model, which makes the explanations comparable across fundamentally different model classes.
+
+The local SHAP values are then aggregated across many forecast instances and across predefined day-part regimes in order to obtain global interpretations. This aggregation is important because electricity demand shows recurring intra-day structures, and the relevance of a predictor may differ systematically between different daily regimes.
+
+For the Bayesian LSTM, the thesis goes one step further by repeating the SHAP computation over multiple stochastic forward passes. This aims to link explainability with probabilistic forecasting. Instead of calculating only one attribution per feature and horizon, the analysis derives a distribution of SHAP values from which mean effects and confidence intervals can be estimated. The theoretical motivation is that, if the model itself expresses uncertainty through stochastic weights or stochastic predictions, then the explanations of that model should also be assessed for stability.
+
+In the present implementation, the SHAP computation was adapted to the input structure of each forecasting model in order to obtain explanations that are computationally reasonable and semantically meaningful. For the LSTM-based models, an exact SHAP explainer is combined with a custom feature-grouped time-series masker defined on a background of $1000$ training windows sampled at one day-ahead forecast origin per day. The usage of the exact SHAP calculation is only possible because of the relatively low number of features(7), but in a scenario of a larger feature set, the SHAP values can be approximated by a permutation based explainer. The model input has the form $N \times T \times F$, where $T$ denotes the lookback length(7 days) and $F$ the number of predictors, but the masker defines one coalition per predictor rather than one coalition per lagged input cell. This builds on a similar reasoning as in \cite{jutteCSHAPTimeSeries2025} where the prophet components are semantically as analysed over the whole input interval to allow for an easy to understand interpretation. An attribution on the level of every individual lagged cell would fragment the explanation into hundreds of strongly correlated effects and would render exact SHAP prohibitively expensive. In contrast, predictor-level grouping ensures interpretability in terms of meaningful variables such as load history, calendar information, and weather inputs. Consequently, when a feature is masked, its complete history over the lookback window is replaced by the corresponding windows from the training background, while the remaining predictors are kept unchanged. This yields SHAP tensors of shape $N \times F \times H$, with $H=96$ forecast horizons for the day-ahead prediction, such that the SHAP values for a given horizon together with the corresponding base value reconstruct the model output. 
+
+In the deterministic LSTM case, the regime-specific importance is obtained by slicing the $96$-step forecast into the predefined day-part intervals Night $(0$--$24)$, Morning Ramp $(24$--$40)$, Midday $(40$--$64)$, Afternoon $(64$--$80)$, and Late Evening $(80$--$96)$. Because each LSTM input already generates a complete day-ahead timeseries, using one forecast origin every $96$ quarter-hours for the grouped training background it is reasonable as the same daily issue-time reduces redundancy by overlapping rolling windows and ensures that meaningful windows are sampled for the SHAP calculation. This is due to the fact, when using the whole training dataset with strongly differing starting issue-times, the sampling method could result in replacing typical morning solar radiation values with values from the night which are not representative to the actual data. A total of 416 windows of the test dataset are used to calculate the global shap values.
+
+For the Bayesian LSTM, the same grouped exact explainer and test windows are retained in order to keep the explanation directly comparable to the deterministic network, but the SHAP computation is repeated over $30$ stochastic forward passes. The resulting SHAP array has shape $S \times N \times F \times H$, and the $2.5$th and $97.5$th percentiles of mean absolute SHAP values are reported as empirical uncertainty intervals. These intervals should therefore be interpreted as uncertainty caused by stochastic Bayesian forward passes rather than as classical frequentist confidence intervals that normally capture uncertainty due to data sampling.
+
+For the Prophet model, SHAP is applied to the preprocessed regressors, which makes exact SHAP feasible because the model input is tabular and comparatively low-dimensional. A prediction wrapper keeps the timestamp $ds$ fixed and explains only the regressor columns, so that the resulting attributions quantify how the exogenous variables shift the forecast at a given timestamp relative to a expected baseline value. In order to ensure a similar plausible data sampling, as in the LSTM SHAP calulation, Prophet instances are sampled by stratified sampling across the same day-part regimes. This comprises $10{,}000$ explained samples in total and for each explained timestamp the SHAP background is rebuilt from training observations observed at the identical quarter-hour of day, capped at $1{,}718$ background rows. To ensure that explanations were referenced to comparable operating conditions, the SHAP background for each explained timestamp was sampled from training observations at the same quarter-hour of day, which yields conditional explanations relative to typical conditions at the same time of day rather than relative to one global average over all timestamps. This design is viewed as appropriate for Prophet because it prevents structurally different night-time, morning, and evening operating conditions from being mixed into a single baseline. 
+
+Overall, these implementation choices aim to ensure that the SHAP explanation space matches the underlying model architecture in each case and that local, regime-level, and probabilistic explanations remain comparable across fundamentally different forecasting approaches.
+
+\section{Data Sources}
 The data used in this thesis comprises primarily quantitative datasets from three main sources: historical electricity load data from the ENTSO-E Transparency Platform, meteorological reanalysis data from the ERA5 (ERA5-Land hourly data from 1950 to present) \cite{ERA5LandHourlyData} dataset and weather forecasts from ECMWF Open data subset \cite{OpenData2021}.
 
 The ENTSO-E data provides hourly and sub-hourly historical electricity load for Austria, reflecting aggregate national energy consumption patterns at high-voltage levels. It is structured as numerical time series data accessible programmatically through the ENTSO-E API \cite{TransparencyPlatformRestful}. This dataset is publicly accessible and does not require additional consent from external parties. Only the data of the Austrian bidding zone, created after the split of the former bidding zone (DE-AT-LU) in October 2018 is used.
 
-The publicly available ERA5 dataset, obtained via the Copernicus Climate Data Store (CDS) API contains hourly weather variables such as temperature, solar radiation and wind speed. ERA5 data are provided in netCDF format, capturing spatially gridded meteorological parameters. Given the 3-month latency in the finalized ERA5 dataset, the provisional ERA5T dataset will be employed to bridge the gap for recent data. ERA5T is updated daily but includes data up to 5-7 days prior to the current date, making it suitable for near-real-time applications but subject to later revisions. To transform these spatial datasets into usable time series for modeling, the data is spatially aggregated to produce country-level averages or specific point-based series relevant for bidding zone of Austria.
+The publicly available ERA5 dataset, obtained via the Copernicus Climate Data Store (CDS) API contains hourly weather variables such as temperature, solar radiation and wind speed. ERA5 data are provided in netCDF format, capturing spatially gridded meteorological parameters. Given the 3-month latency in the finalized ERA5 dataset, the provisional ERA5T dataset will be employed to bridge the gap for recent data. ERA5T is updated daily but includes data up to 5-7 days prior to the current date, making it suitable for near-real-time applications but subject to later revisions.
 
-For day-ahead forecasting, additional data is needed to fill in the missing gaps for the meteorlogical variables. This is why ECMWF numerical weather forecasts are ingested alongside. ECMWF forecasts conviniently provide the meteorological predictions for the same variables with lead times suitable for day-ahead applications. These data are typically available in GRIB, which are similarly spatially aggregated to generate forecasting-ready time series.
+For day-ahead forecasting, additional data is needed to fill in the missing gaps for the meteorlogical variables. This is why ECMWF numerical weather forecasts are ingested alongside. ECMWF forecasts conveniently provide the meteorological predictions for the same variables with lead times suitable for day-ahead applications. These data are typically available in GRIB, which are similarly spatially aggregated to generate forecasting-ready time series, as described in the following sections.
 
 \section{Data Engineering and Preprocessing}
+\subsection{Weather Variable Preprocessing}
+The meteorological variables retrieved from the Copernicus Climate Data Store and ECMWF are available at an hourly resolution on a spatial grid defined by latitude and longitude. Since the forecasting task is defined at the level of the Austrian bidding zone, these gridded fields are reduced to country-level time series before they are used for modelling. For this purpose, a spatial mask for Austria is applied to the grid and the remaining grid-cell values are averaged over the latitude and longitude dimensions for each timestamp. The result is one country-level time series per weather variable, which preserves the temporal development of the meteorological conditions while omitting spatial detail that is not required for the selected forecasting setup.
 
-How is the data prepared for the lstm? Prophet?
+A distinction must be made between instantaneous variables, such as the temperature at two metres, and accumulated variables, such as total solar radiation downwards and total precipitation. Instantaneous variables can be used directly after spatial aggregation. Accumulated variables, in contrast, first are transformed from cumulative values into hourly increments by differencing consecutive timestamps. In a subsequent step, these interval totals are normalized by the interval length in order to represent a rate over the corresponding hour. In addition, the two horizontal wind components are combined into a scalar wind-speed feature. The resulting hourly weather series are then persisted in a PostgreSQL database using a UTC timestamp representation.
+
+\subsection{Frequency Conversion}
+The target load series is available at a 15-minute resolution. Consequently, the hourly weather variables have to be aligned to the same temporal grid before they can be used as exogenous predictors. This is achieved by reindexing the hourly weather series to the 15-minute load index and forward-filling the most recent hourly observation across the four quarter-hour intervals contained in each hour, as illustrated in Figure \ref{ForwardFill}. In this way, all features share a common time axis while the weather information remains temporally consistent within the hour.
+
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.5\linewidth]{PICs/FFill.drawio.png}
-\caption{Weather Variables must be forward filled to match the 15 min resolution of the load timeseries }\label{ForwardFill}
+\caption{Forward filling of hourly weather variables to align them with the 15-minute load series.}\label{ForwardFill}
 \end{figure}
+
+To reflect the day-ahead forecasting task, the weather variables are then shifted by 24 hours, corresponding to 96 quarter-hour steps. Thus, the feature vector at time $t$ contains the load information together with the meteorological conditions associated with time $t + 24$ hours. Finally, the weather variables are merged with the load series on the common timestamp index and enriched with calendar indicators. The model-specific representation of this merged dataset is described in the corresponding model subsections below.
+
 
 \section{Experiment Tracking}
 
 All experiments are run locally using Jupyter Notebooks. To ensure reproducability the intermediate metrics and final models get logged to a local MLFlow-Server instance.
 
-\section{Model Architectures and Implementation}
-
-\subsection{Bayesian LSTM}
-
-The implementation of a bayesian LSTM variant, relies on the former implementation BLiTZ \cite{pieroespositoBLiTZBayesianLayers2020} which uses a similar programatic interface as pytorch. The model architechture is shown in Figure \ref{BayesianLSTMarchitercture}. 
-
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.9\linewidth]{PICs/BayesianLSTMArchitecture.drawio.png}
-\caption{Input and output structure for the layesian LSTM }\label{BayesianLSTMarchitercture}
-\end{figure}
-
-The model recieves a sequence of $x_j$ input features of horizon $h=672$ which corresponds to a lookback of 7 days based on the 15 min interval given by the structure of the load series. The output is a one dimensional vector of length two times of the forecasting horizon ($horizon_{forecasting} = 96$).
+Hyperparameter optimization for the trainable forecasting models is performed with Optuna. For each trial, Optuna samples a candidate hyperparameter configuration from a predefined search space and trains the corresponding model on the training set, while performance is monitored on a separate validation set. Training is terminated early when the validation loss does not improve for a fixed number of epochs, so that unnecessarily long runs are avoided and overfitting is reduced. In addition, Optuna prunes unpromising trials based on intermediate validation results, which makes the search more efficient. The final hyperparameter configuration is selected as the trial with the lowest validation error and is then used for the final model fit and test evaluation.
 
 \section{Evaluation Framework}
 
+All models are evaluated in their point forecast precision based on the RMSE and MAE performance over all as main indicator to compare against other literature. Furthermore, to verify the models accuracy based over a horizon the RMSE over the 96 prediction timesteps are investigated as well.
+
+The data are split chronologically into training, validation, and test sets in order to preserve the temporal ordering of the forecasting problem and to avoid information leakage from future observations, as best practice in temporal cross validation experiments. 
+
+To asses the possible covariates for predicting future load, several candidate feature sets were defined to reflect different modelling assumptions, including load-only, load with calendar indicators, load with past weather, load with future weather, combinations of past and future weather, and variants with cyclic calendar encodings.
+
+Each feature set was evaluated with the same architecture and the same initial training configuration in order to isolate the effect of the input representation. The feature set with the best cross-validated performance was then selected for the subsequent model development.
+
+In terms of verifying the probabilistic forecast, Chen et. al. suggests that commonly kown metrics like CRPS and pinball loss are mainly used for model comparison \cite{chenEvaluationProbabilisticElectricity2024}. As this thesis is focused on the comparing a probabilistic model to point prediction models, the natural choice of evaluation is the Probability Integral Transform (PIT Histograms) on the probabilistic model alone.
 
 \chapter{Results}
 
-\chapter{Discussion}
-\subsection{Main findings}
-\subsection{Comparison with previous work}
-\subsection{Implications}
-\subsection{Limitations}
+\section{Feature Selection}
 
-\noindent Querverweise werden in \LaTeX{} automatisch erzeugt und verwaltet, damit sie leicht aktualisiert werden können. Hier wird zum Beispiel auf Abbildung \ref{Abb1} verwiesen.
+There were quite different features proposed by literature, but summarized the main contributing factors are identified as calendaric features like holiday indicators and weather covariates \cite{yaprakdalMultivariateTimeSeries2023, papalexopoulosRegressionbasedApproachShortterm1990, baurExplainabilityInterpretabilityElectric2024, liPowerLoadForecasting2022}. To understand how these covariates influence day-ahead load forecasting in the Austrian bidding zone, a comparative evaluation of alternative input representations was conducted.
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-\caption{Beispiel für die Beschriftung eines Buchrückens.}\label{Abb1}
-\end{figure}
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-\caption{2. Beispiel für die Beschriftung eines Buchrückens.}\label{Abb2}
-\end{figure}
-
-Und hier ist ein Verweis auf Tabelle \ref{tab1}. Das gezeigte Tabellenformat ist nur ein Beispiel. Tabellen können individuell gestaltet werden.
-
-\begin{table}[!htbp]
-\centering
-\caption{Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab1}
-\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
-Datum & Thema & Raum\\\hline
-20.08.2008 & Graphentheorie & HS 3.13\\
-01.10.2008 & Biomathematik & HS 1.05\\\hline
-\end{tabular}
-\end{table}
-\begin{table}[!htbp]
-\centering
-\caption{2. Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab2}
-\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
-Datum & Thema & Raum\\\hline
-20.08.2008 & Graphentheorie & HS 3.13\\
-01.10.2008 & Biomathematik & HS 1.05\\\hline
-\end{tabular}
-\end{table}
-
-Hier wird auf die Formel \ref{Gl1} verwiesen.
-
-\begin{align}
-x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl1}
-\end{align}
-\begin{align}
-x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl2}
-\end{align}
-
-Literaturverweise sollten automatisch verwaltet werden, vor allem, wenn es viele Quellenverweise gibt. Beispiele sind  \cite{201751stAnnual2017}. Das verwendete Zitierformat (bzw.~das Format des Literaturverzeichnisses) ist entspechend der Vorgaben der Studiengänge zu wählen.
-Es wird dringend empfohlen, Biber oder BibTeX~zu verwenden (wie in diesen Beispielen).
-
-\chapter{Dritte Überschrift der Tiefe 1 (chapter)}
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-\caption{3. Beispiel für die Beschriftung eines Buchrückens.}\label{Abb3}
-\end{figure}
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-\caption{4. Beispiel für die Beschriftung eines Buchrückens.}\label{Abb4}
-\end{figure}
-
-
-\begin{table}[!htbp]
-\centering
-\caption{3. Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab3}
-\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
-Datum & Thema & Raum\\\hline
-20.08.2008 & Graphentheorie & HS 3.13\\
-01.10.2008 & Biomathematik & HS 1.05\\\hline
-\end{tabular}
-\end{table}
-\begin{table}[!htbp]
-\centering
-\caption{4. Semesterplan der Lehrveranstaltung \glqq Angewandte Mathematik\grqq.}\label{tab4}
-\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}\hline
-Datum & Thema & Raum\\\hline
-20.08.2008 & Graphentheorie & HS 3.13\\
-01.10.2008 & Biomathematik & HS 1.05\\\hline
-\end{tabular}
-\end{table}
-
-\begin{align}
-x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl3}
-\end{align}
-\begin{align}
-x = -\frac{p}{2}\pm\sqrt{\frac{p^2}{4}-q}\label{Gl4}
-\end{align}
-
-The following commands are provided to provide quality of life improvements
+The following feature sets are evaluated against each other:
 \begin{itemize}
-    \item \texttt{\textbackslash{}citepic}
-    the usage of the command is depicted in figure~\ref{Abb5}.
-    \item \texttt{\textbackslash{}citefig}
-    the usage of the command is depicted in figure~\ref{Abb6}.
-    \item \texttt{\textbackslash{}citefigm}
-    the usage of the command is depicted in figure~\ref{Abb7}.
+    \item load history only,
+    \item load history with basic calendar indicators (weekday/weekend, holiday flag),
+    \item load history with 24-hour-ahead weather covariates,
+    \item load history with both past and future weather information,
+    \item load history with calendar features and cyclic encodings for time of day, day of week and day of year.
 \end{itemize}
 
+These feature combinations allow a systematic assessment of the marginal benefit added by weather forecasts and richer calendar encodings, while keeping the forecasting architecture fixed across experiments.
+
 \begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-    \caption{Usage of the command \texttt{\textbackslash{}citepic}: \citepic{201751stAnnual2017}}\label{Abb5}
-\end{figure}
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-    \caption{usage of the command \texttt{\textbackslash{}citefig}: \citefig{201751stAnnual2017}{30}}\label{Abb6}
-\end{figure}
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.5\linewidth]{PICs/buchruecken}
-    \caption{usage of the command \texttt{\textbackslash{}citefigm}: \citefigm{201751stAnnual2017}{30}}\label{Abb7}
+\centering
+\includegraphics[width=1\linewidth]{PICs/feature_set_evaluation.png}
+\caption{Feature set evaluation results.}\label{FeatureSetEvaluation}
 \end{figure}
 
+The figure \ref{FeatureSetEvaluation} displays the cross-validated results of the feature evaluation experiments. A key constraint in the feature set selection is the total number of features, due to the computational complexity of SHAP calculations in the forecast interpretation section.
+
+Upon examining the results, it is evident that calendar features and cyclic encodings yield comparable performance improvements. This is not the case when comparing future and past weather information, where future weather covariates provide substantially more predictive value than historical weather data alone.
+
+Consequently, the optimal feature set is balancing performance and complexity, uses load history, basic calendar indicators, and future weather covariates.
+
+The selected feature set includes the historical load series at 15-minute resolution, binary indicators for weekdays (1 for Monday to Friday, 0 otherwise) and holidays (1 if the date is a public holiday in Austria, 0 otherwise), and future weather covariates shifted 24 hours ahead: temperature at 2 meters (t2m, instantaneous), solar radiation downwards rate (ssrd, converted from accumulated hourly totals to hourly rates), total precipitation rate (tp, similarly converted), and wind speed (computed as the Euclidean norm of the 10-meter wind components u10 and v10).
+
+
+\section{Point Forecast Quality}
+
+The next section discloses the results from the model comparison in terms of their point forecast performance. The overall performance is shortly summarized in table \ref{tabPointForecast}. The RMSE of between the bayesian LSTM and vanilla LSTM are on the same order of magnitude and both seem to outperform Prophet. The deterministic LSTM achieves the the lowest overall errors (RMSE: 341.09 MW, MAE: 218.39 MW). For reference the average observed load in the dataset is 6,932 MW, based on the exploratory data analysis (October 2025).
+
+These results point out that recurrent neural architectures have an advantge capturing complex temporal dependencies as one would expect against a simpler decomposition model, which while being interpretable, struggles to capture the multivariate dependencies in 15-minute Austrian load. 
+
+The Bayesian LSTM incurs a modest performance penalty for uncertainty quantification: RMSE increases by ~3.6\% (353.59 vs 341.09) and MAE by ~14.7\% (250.21 vs 218.39) relative to the deterministic LSTM.
+
+Despite architectural differences, both neural models lie in a similar performance region with RMSE values within 12 MW of each other. This is suggesting that the LSTM inductive bias dominates over the deterministic against probabilistic distinction. In other words, it seems to matter not as much adding bayesian uncertainty on top of the model architecture, as the LSTM architecture is the dominant factor in performance.
+
+\begin{table}[!htbp]
+\centering
+\caption{Overall cross-validated forecasting performance of the evaluated models on the test set (unscaled).}\label{tabPointForecast}
+\begin{tabular}{| p{0.35\linewidth} | p{0.22\linewidth} | p{0.22\linewidth} |}\hline
+Model & RMSE Overall & MAE Overall\\\hline
+Bayesian LSTM & 353.586 & 250.205\\
+LSTM & 341.090 & 218.390\\
+Prophet & 521.325 & 418.771\\\hline
+\end{tabular}
+\end{table}
+
+Another evolution in the training setup was to change the MSE-based loss with a Gaussian negative log-likelihood term allowing the  Bayesian LSTM to model both the expected load and its predictive variance. The difference in the in the point forecast performance was a drop in ~16 MW (Overall RMSE before: 368.98). With this adaption the model now does not only capture the epistemic uncertainty from resampling the model weights on each forward path, but also model the aleatoric uncertainty, which is the inherent variability of the load signal. The reasoning is that this enables wider prediction intervals during volatile periods and narrower ones when the system is more predictable, which should upport more risk-aware decisions.
+
+Figure \ref{ForecastComparisson} illustrates sample day-ahead predictions over a randomly drawn winter and summer period of seven days. The individual day ahead predictions are concatenated to allow a continous display of the sample forecast interval. A further analysis in the model performance indicated that the LSTM architecture models struggle to perform better in summer periods compared against winter periods.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=1\linewidth]{PICs/normal_weeks_plot.png}
+\caption{Forecasting comparison for the different models.}\label{ForecastComparisson}
+\end{figure}
+
+\FloatBarrier
+
+It is evident that both the Bayesian LSTM and the standard deterministic LSTM struggle to reproduce the shape of the load curve during the midday. This contrast becomes more pronounced when comparing these results to the Prophet model, which, although inherently less flexible by architecture, matches the morning load pattern more closely than the larger spikes produced by the Bayesian LSTM. One possible explanation is that summer load dynamics are less regular and more weakly structured than winter demand which is making them harder for the LSTM-based models to learn from recent lagged observations alone. By contrast, Prophet benefits from an explicit seasonal decomposition, that may provide a stronger inductive bias for reproducing the smoother summer morning pattern.
+
+
+Another key insight is that the Prophet model performs worse on weekends, while the LSTM-based models are better able to capture the actual weekend demand pattern.
+
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=1\linewidth]{PICs/performance_weekday.png}
+\caption{Error comparison per weekday.}\label{WeekdayErrorComparisson}
+\end{figure}
+
+\FloatBarrier
+
+Figure \ref{WeekdayErrorComparisson} indicates that the interquartile range of prediction errors is larger during the weekend regime than on weekdays. For the Prophet model, a Mann-Whitney U test comparing weekend and weekday error distributions yields a p-value of $4.55\times 10^{-242}$, which indicates a statistically significant difference between the two groups.
+
+\begin{table}[!htbp]
+\centering
+\caption{Grouped Prophet error statistics by weekday/weekend regime.}\label{tabWeekdayWeekendErrors}
+\begin{tabular}{| l | r | r | r | r |}
+\hline
+Regime & Mean & Median & Std & Count \\
+\hline
+Weekday & 383.72 & 323.05 & 290.34 & 28\,513 \\
+Weekend & 506.58 & 457.92 & 340.76 & 11\,350 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+One possible hypothesis is that the Prophet model's deterministic seasonal decomposition does not fully capture the structural weekend regime shift in Austrian load demand, leading to systematically higher weekend errors. This suggests that the weekend load behavior includes non-linear dependencies or regime-specific patterns that are better modeled by the more flexible LSTM architectures.
+
+Figure \ref{WeekdayErrorComparisson} also shows a higher spread of outliers than the other models, which indicates a possible overprediction that causes some implications that are discussed in the next section.
+
+
+Table \ref{tabTrainingTimes} shows the actual training times during the cross validation runs. It is apparent that the deterministic LSTM is trained approximately 45 times faster than the Bayesian LSTM and Prophet is even 10 times faster evaluated than the vanilla LSTM model.
+
+This in turn clearly became a bottleneck during the experimentation phase, as it reduced the speed of model development and evaluation. Longer training times per experiment meant that fewer configurations could be tested, which restricted both tuning and rapid iteration on new ideas.
+
+\begin{table}[!htbp]
+\centering
+\caption{Training times of the evaluated models.}\label{tabTrainingTimes}
+\begin{tabular}{| p{0.35\linewidth} | p{0.44\linewidth} |}\hline
+Model & Training Time\\\hline
+Bayesian LSTM & 5.8 days\\
+LSTM & 3.1 hours\\
+Prophet & 17.9 minutes\\\hline
+\end{tabular}
+\end{table}
+
+\section{Probabilistic Forecast Quality and Uncertainty}
+
+The PIT histogram is a viable method to assess the calibration of probabilistic predictions. For this thesis, the CDF values are derived from repeated stochastic forward passes of the Bayesian LSTM on the test data. For each forecast horizon, the model outputs a predictive mean and a variance parameter, which together define a Gaussian predictive distribution after enforcing positivity of the variance. By sampling the model multiple times, a Monte Carlo approximation of the predictive distribution is obtained. The PIT value for a realized observation is then calculated by evaluating the corresponding predictive CDF at the observed load value and averaging these probabilities across the sampled predictive distributions. This yields one PIT value per forecasted target, from which the calibration histogram is constructed. In the ideal case, the PIT values $u = F_Y(y)$ are uniformly distributed $u \sim \mathcal{U}(0,1)$. Deviations from this benchmark provide information about the type of miscalibration.
+
+
+Figure \ref{figPITValues} shows the first PIT histogram obtained from an initial lower-capacity Bayesian LSTM. It indicates a systematic skewness, reflected by a strong clustering of CDF values in the area around 0.0 as well as a lack of values in the area around 1.0, which suggests that the model tends to overpredict the actual load. Furthermore, the hump in the middle also indicates a poor fit.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{PICs/pit_before_retraining.png}
+\caption{PIT values of the Bayesian LSTM ($hidden size = 64$).}\label{figPITValues}
+\end{figure}
+
+\FloatBarrier
+
+As a follow-up experiment, the model was retrained with a larger hidden size in order to examine the effect not only on point forecast performance but also on the calibration plot. Figure \ref{figPITValuesRetraining} depicts the resulting PIT histogram shapes, although a new problematic pattern emerges.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=1\linewidth]{PICs/pit_after_retraining_combined.png}
+\caption{PIT values of the Bayesian LSTM after retraining: left ($hidden size = 96$) and right ($hidden size = 128$).}\label{figPITValuesRetraining}
+\end{figure}
+
+The shape of the histograms indicates overconfidence of the predictive distributions. In particular, a pronounced U-shape implies that realized observations occur too frequently in the tails of the predictive distribution, meaning that the forecast variance is too small and the predictive densities are underdispersed. In practical terms, the model issues intervals that are too narrow and therefore expresses a level of certainty that is not supported by the observed load realizations. The retrained Bayesian LSTM therefore improves neither calibration nor uncertainty quantification in a satisfactory way, even if changes in hidden size alter the exact histogram shape.
+
+
+An additional post-hoc calibration experiment was conducted on the Bayesian LSTM by fitting per-horizon affine corrections to the predictive mean and variance on the validation set and applying these corrections to the test forecasts.
+
+The results of this calibration can be viewed in figure \ref{figPITValuesCalibration}.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=1\linewidth]{PICs/pit_calibration.png}
+\caption{PIT after the calibration experiment.}\label{figPITValuesCalibration}
+\end{figure}
+
+It is apparent that the U-shaped distribution is reduced and less pronounced, which indicates more trustworthiness in the resulting probability intervals. However, this thesis, the main objective was to assess whether the Bayesian LSTM provides well-calibrated probabilistic forecasts on its own and whether its predictions can be interpreted consistently using SHAP-based feature attributions. Integrating a post-hoc calibration into the final system would have complicated this interpretation, because the reported forecast distribution would then partly arise from the calibration step rather than solely from the neural network. In particular, the current SHAP analysis explains the predictive mean generated by the model, whereas calibrated uncertainty intervals depend on an additional transformation that is not directly represented in the attribution workflow.
+
+Calibration is therefore reported as an extra experiment, not as part of the final deployed pipeline.
+
+\section{Explainability Analysis}
+
+The explainability analysis was conducted using SHAP-based global feature attributions in order to assess which input variables drive forecasts of the different model classes in different regimes. Interesting regimes are identified based on typical load demand patterns as can be seen from \ref{figElectricityDemandPattern}. 
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.8\linewidth]{PICs/daily_demand_pattern.png}
+\caption{Daily electricity demand pattern by seasonal decomposition.}\label{figElectricityDemandPattern}
+\end{figure}
+
+
+The regimes used for the SHAP analysis are derived from these recurring load structures. The daily seasonal component shows clearly distinguishable phases over the course of the day, including a low-demand night period, a pronounced morning ramp, a local midday minimum, a renewed increase in the late afternoon and evening, and a subsequent decline overnight. For this reason, the forecast horizon is grouped into the five day-part regimes Night, Morning Ramp, Midday, Afternoon and Late Evening. Aggregating SHAP values within these regimes makes the explanations easier to interpret, because feature effects can be compared for periods with different operational demand characteristics instead of only at isolated quarter-hourly steps.
+
+\FloatBarrier
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.8\linewidth]{PICs/shap_regimes_lstm.png}
+\caption{Global Mean SHAP values for the LSTM model.}\label{figGlobalSHAPLSTM}
+\end{figure}
+
+For the deterministic LSTM, the mean SHAP contribution in figure \ref{figGlobalSHAPLSTM} show that the actual load has the largest average attribution magnitude across all forecast regimes, suggesting that the recent load history is the driver of the LSTM forecasts. The second highest attribution is accounted to the calendar-related feature indicating if it is a weekday, which seems to make it viable as a secondary signal. Both the load and weekday indicator seem to have a higher attribution around the Morning Ramp and Midday regimes, suggesting that the model relies on this features forecasting the relatively more complex midday pattern. The weather-related predictors show a smaller attribution magnitudes in this setup.
+
+However, since the plot reports mean absolute SHAP values, these results should be interpreted as average contribution magnitudes rather than signed effects like in the detail analysis provided in the user interface plots of the prototype application.
+
+\FloatBarrier
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.8\linewidth]{PICs/shap_regimes_bayesian.png}
+\caption{Global Mean SHAP values for the bayesian LSTM model.}\label{figGlobalSHAPBaysianLSTM}
+\end{figure}
+
+\FloatBarrier
+
+A key experiment of this thesis was to verify the stability of the SHAP-based feature attributions of the Bayesian LSTM across multiple stochastic weight samples.This means to models weights are drawn randomly and kept fixed for every SHAP evaluation while SHAP values were computed. In this way, each explanation corresponds to a deterministic model instance, while the variation across runs reflects the uncertainty invoked by weight sampling. Figure \ref{figGlobalSHAPBaysianLSTM} depicts the resulting regime-wise mean absolute SHAP values for 30 sampled model instances, with the upper and lower bands indicating the spread across runs. Overall, the attribution hierarchy is quite consistent across sampled weight configurations and closely resembles that of the deterministic LSTM. The actual load is the dominant forecast driver in all regimes, followed by the weekday indicator, while the weather variables contribute comparatively less. This suggests that the Bayesian weight uncertainty does not fundamentally alter the ranking of the most influential predictors.
+
+Furthermore, a closer analysis of the regime-wise results shows that the attribution band of the weekday indicator is wider during the Morning Ramp, Midday, and Afternoon regimes. This suggests that the importance of weekday information is more sensitive to the sampled weight configuration in periods with stronger variability in daily demand structure. In contrast, the attribution band of the actual load remains comparatively stable across most regimes and widens mainly in the Afternoon regime. A possible interpretation is that the reliance of the model on recent load history is likely robust overall, but becomes more uncertain during the transition from midday demand to the evening period.
+
+\FloatBarrier
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.8\linewidth]{PICs/shap_regimes_prophet.png}
+\caption{Global Mean SHAP values for the prophet model.}\label{figGlobalSHAPProphet}
+\end{figure}
+
+
+For Prophet, the aggregated SHAP attribution explanation differs substantially because the model does not rely on lagged load values in the same way as the recurrent architectures. Instead, the attributions are dominated by the exogenous regressors and calendar indicators that were directly added to the additive forecasting structure. At the same time, it should be stated again that the SHAP analysis in this thesis only captures the contribution of the explicit input variables, but not Prophet's internal model components such as trend, weekly seasonality, and daily seasonality components. This restriction was applied deliberately in order to maintain comparability with the LSTM-based models for which the interpretation is likewise based on the provided input features rather than on internal latent representations. The internal patterns learned by Prophet can still be examined separately through the models native component plots, such as trend and seasonality visualizations. However, within the comparable SHAP framework, as shown in Figure \ref{figGlobalSHAPProphet}, the temperature is the most influential feature across all regimes, indicating that it is the primary external driver of the prophet forecasts. The weekday indicator is the second most important contributor and remains comparatively stable across the different day-part regimes, which is consistent with the strong weekly seasonality observed in the demand data.  Holiday effects, represented here through the explicit holiday indicator, whereas the remaining weather variables, especially wind speed and precipitation, contribute only marginally. Solar radiation exhibits a more regime-dependent importance, with larger SHAP values during the Morning Ramp and Midday periods and a clear decline in the Late Evening regime, which is consistent with its daytime relevance. Overall, the Prophet explanations suggest that the model relies primarily on structured calendar effects and a small number of dominant exogenous drivers.
+
+
+\begin{table}[!htbp]
+\centering
+\caption{SHAP evaluation times of the evaluated models.}\label{tabShapTimes}
+\begin{tabular}{| p{0.35\linewidth} | p{0.44\linewidth} |}\hline
+Model & SHAP Evaluation Time\\\hline
+Bayesian LSTM & 664 min 17 s\\
+LSTM & 167 min 37 s\\
+Prophet & 36 min\\\hline
+\end{tabular}
+\end{table}
+
+The computational cost of the SHAP-based explainability analysis differs substantially across the evaluated models. Table \ref{tabShapTimes} shows the resulting computation times of the global analysis. As expected, the Prophet model exhibits the lowest evaluation time due to its relatively simple additive structure and the absence of sequential dependencies. The deterministic LSTM requires noticeably more computation, reflecting the higher complexity of recurrent architectures and the need to evaluate longer input sequences. The Bayesian LSTM, in contrast, has the highest computational cost mostly due to repeated SHAP evaluations over multiple stochastic forward passes in order to capture epistemic uncertainty.
+
+However, it is important to note that the increase in computation time is not proportional to the number of sampled model instances. Although 30 stochastic forward passes were used, the total runtime did not scale linearly by a factor of 30 compared to the deterministic LSTM. Furthermore, since global SHAP values are typically computed only once per trained model for analysis purposes rather than during iterative model development, the additional computational cost of the Bayesian approach remains practically feasible. 
+
+In addition, local SHAP explanations for individual forecasts require approximately 1-3 minutes per instance, which is considered feasible as well when computed once directly after the forecasts are created for post-hoc analysis later in that day.
+
+Overall, the explainability results are consistent with the forecasting performance observed in the feature set benchmark. The LSTM and Bayesian LSTM derive most of their predictive strength from the recent load history and calendar effects, which is plausible for high-frequency electricity demand forecasting. Weather variables are informative, but their role is predominantly complementary.
+
+
+\section{Deployment Concept}
+
+The deployment concept of the prototype is focused to demonstrate how the proposed forecasting approach could be integrated into a practical decision-support application. The primary objective is to provide an interface through which forecasts can be generated, inspected, and interpreted in an accessible manner. For this purpose, a Streamlit-based frontend was selected, as it enables fast development and deployment of interactive Python applications.
+
+An exemplary draft can be seen in the figure 
+
+
+
+The frontend is connected to a FastAPI backend, which acts as the central orchestration layer and provides the data and forecasting results required by the user interface. At the core of the system lies a modular Python package whose main functionality is implemented through dedicated service components. These services encapsulate the logic for data ingestion, preprocessing, persistence and are invoked by the backend in response to frontend requests. The services interact with the ENTSO-E Transparency Platform, the ECMWF API for weather forecasts and the Copernicus Climate Data Store for ERA5 data retrieval. 
+
+To support maintainability and software quality, the package has some exemplary unit tests for the service layer and integration tests for database access illustrating how such a forecasting system could be structured in a robust and extensible manner. In addition, the package provides a command-line interface that defines workflows for fetching electricity load data, retrieving historical weather data, obtaining forecast weather inputs and storing all processed datasets in a PostgreSQL database.
+
+On top of these commands, PowerShell scripts are provided to execute the predefined workflows for the most recent required dates to simplify routine data updates. In a productive environment, these scripts could either be triggered manually or scheduled automatically, for example via cron jobs or comparable task schedulers in order to ensure continuous data availability for operational forecasting. Figure \ref{figSystemOverview} depicts the overall component architecture, including the Streamlit frontend, the FastAPI backend, the PostgreSQL database, and the associated data ingestion services.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=1\linewidth]{PICs/system_overview.drawio.png}
+\caption{Overview of the systems individual components.}\label{figSystemOverview}
+\end{figure}
+
+\chapter{Discussion}
+\section{Main findings}
+
+This thesis examined how interpretability and uncertainty quantification can be combined in short-term electricity load forecasting for the Austrian bidding zone. The first research question asked which factors most strongly influence day-ahead load and whether these factors require preprocessing before modelling. The results show that historical load is the dominant predictor, while calendar information, especially the weekday indicator, provides the most important secondary signal. Future weather covariates improve forecasting performance further, but their contribution is smaller than that of load history and calendar structure. This pattern is visible both in the feature set comparison and in the SHAP-based interpretation of the trained models. Spatial aggregation of weather data to the Austrian bidding zone, conversion of accumulated weather variables into rates, temporal alignment from hourly to 15-minute resolution and a 24-hour shift of weather predictors were all required to construct a feature space that is useful for day-ahead forecasting based on the proposed model architectures. An important finding is that future weather information is considerably more valuable than past weather information, whereas richer cyclic encodings did not substantially outperform simple calendar flags, but added more complexity possible hindering interpretability methods like SHAP. In this setting, the most useful representation is therefore not the most complex one, but the one that aligns most closely with the forecasting objective.
+
+The second research question concerned the comparison between probabilistic forecasts from a Bayesian LSTM and standard deterministic models in terms of RMSE, MAE, and interpretability. The deterministic LSTM achieved the best point forecast performance, with the lowest overall RMSE and MAE, while the Bayesian LSTM remained close in RMSE but incurred a noticeable performance reduction in MAE. Prophet performed substantially worse than both neural models. This indicates that the main performance advantage arises from the recurrent architecture itself rather than from the probabilistic extension. In other words, the LSTM inductive bias appears to matter more for point accuracy than the distinction between deterministic and Bayesian training. However, the Bayesian extension should not be judged only on point forecast accuracy, because its purpose is broader. It adds predictive uncertainty and enables the analysis of explanation stability. The results nonetheless show that this added capability comes at a cost. The PIT histograms indicate that the Bayesian LSTM does not provide well-calibrated uncertainty estimates out of the box. The initial version tended toward overprediction, while retrained variants produced underdispersed and overconfident predictive distributions. A post-hoc calibration step improved the reliability of the intervals, but this also showed that the model alone is not yet sufficient as a trustworthy probabilistic forecaster in an operational sense.
+
+The third research question asked whether embedding Bayesian uncertainty into the LSTM affects the stability of post-hoc SHAP explanations. Here, the findings are more positive. Across repeated stochastic forward passes, the Bayesian LSTM produced a stable attribution hierarchy. In almost all regimes, the recent load was the most influential feature, the weekday information ranked second, and weather variables were comparatively less important. This means that Bayesian weight uncertainty did not fundamentally change which predictors matter most. What it did change was the spread of the attributions. The uncertainty bands were wider for the weekday feature during the morning ramp, midday, and afternoon regimes, and also wider for load in the afternoon regime. This suggests that uncertainty in explanations is not random but regime-dependent. The main implication is that Bayesian forecasting can add a second layer of interpretation: not only whether the forecast itself is uncertain, but also whether the explanation of that forecast is stable. Taken together, the thesis shows that interpretable probabilistic forecasting is feasible in principle, but that the strongest result of the current implementation lies in stable explanation rather than in calibrated uncertainty estimation.
+
+\section{Comparison with previous work}
+
+The findings are broadly consistent with the literature reviewed in this thesis. Prior work in electricity load forecasting repeatedly identifies historical load, calendar effects, and weather conditions as key drivers of short-term demand \cite{andriopoulosShortTermElectric2021,yaprakdalMultivariateTimeSeries2023,liPowerLoadForecasting2022}. The present results confirm this general picture, but refine it for the Austrian day-ahead setting by showing that future weather covariates are clearly more informative than past weather alone and that simple calendar indicators are already sufficient once strong lagged load information is available. This result seems plausible because the forecasting problem is explicitly day-ahead and therefore benefits from exogenous information that describes the future operating environment rather than only the past.
+
+The comparative model results are also plausible in light of previous work. The literature often reports that nonlinear and recurrent models are better able than classical statistical models to capture complex temporal dependencies in load demand, especially when multiple exogenous drivers are present \cite{andriopoulosShortTermElectric2021,liPowerLoadForecasting2022}. The superior performance of both LSTM variants over Prophet is therefore in line with initial hypotheses. At the same time, the thesis does not support the simple conclusion that interpretable statistical models are obsolete. Prophet remains attractive because of its computational efficiency, native interpretability all while the requirement for hyperparameter tuning is comparably low. In particular, the observation that Prophet sometimes better matches certain structures while still failing on weekends seems to confirm that different model classes encode different inductive biases. The recurrent models better capture nonlinear regime changes, while Prophet benefits from explicit decomposition of recurring seasonal structure.
+
+The most interesting aspect of this thesis in relation to previous work is the combination of probabilistic forecasting and explainability. Baur et al. emphasizes the importance of interpretability and explainability in electric load forecasting, while Zheng et al. demonstrate that SHAP can be used to interpret complex forecasting models \cite{baurExplainabilityInterpretabilityElectric2024,zhengElectricLoadForecasting2017}. However, previous work rarely investigates whether the explanations of a probabilistic neural model remain stable under stochastic weight sampling. In this regard, the thesis aims at making a useful contribution. It does not primarily stand out through superior accuracy benchmark in bechmarks, but through a structured comparison of deterministic and Bayesian explanation behavior under a common SHAP framework. The result that explanation rankings remain stable even when the model is stochastic is both plausible and relevant.
+
+By contrast, the probabilistic results are more mixed when compared with the promise of Bayesian neural methods \cite{blundellWeightUncertaintyNeural2015}. The thesis shows that the existence of predictive distributions does not automatically result in a good calibration. Uncertainty quantification must be evaluated in its own right and cannot be inferred from good point forecast performance alone. In that sense, the proposed solution is better than the statistical baseline in point accuracy and extends prior work in explainability AI in a new perspective, but it cannot yet outperform the best existing probabilistic load forecasting approaches more generally \cite{bazionisReviewDeterministicProbabilistic2021,chenEvaluationProbabilisticElectricity2024}. Its main contribution is methodological integration rather than universal predictive superiority.
+
+\section{Implications}
+
+The implications of this work are primarily methodological and analytical rather than a demonstrated replacement of existing operational forecasting processes. Since ENTSO-E publishes day-ahead load forecasts that are calculated and submitted by TSOs, the proposed LSTM-based approach should be understood as a complementary forecasting and diagnostic tool rather than as a direct substitute for current system-operator procedures. In this light, the main organizational value of the solution lies in providing an independent benchmark based on publicly available load and weather data, together with post-hoc explanations that help analysts inspect whether a forecast is driven mainly by recent demand, calendar effects, or meteorological conditions. Such a model could support model validation, error analysis, and trust-building around machine-learning-based forecasts.
+
+At a broader level, the work shows that interpretable load forecasting may support the integration of renewable energy by improving the analysis of demand patterns under increasingly variable operating conditions. However, the thesis does not demonstrate that the proposed model outperforms the official forecasting procedures currently used by TSOs, nor that it is ready for deployment as a standalone probabilistic decision-support system. Its main contribution is therefore to show the feasibility of combining accurate neural forecasting with interpretable post-hoc analysis, while highlighting the remaining challenge of obtaining well-calibrated uncertainty estimates.
+
+
+
+\section{Limitations}
+
+Several limitations constrain the interpretation and generalization of the results. First, the empirical scope is narrow. The thesis studies one national bidding zone, one temporal resolution, and one forecasting horizon. The findings are therefore most directly relevant to day-ahead transmission-level forecasting in systems with similar load dynamics and data availability. They cannot automatically be generalized to distribution-grid, industrial, building-level, or cross-country forecasting problems, where the role of weather, calendar effects, and recent load history may differ substantially.
+
+Second, the model comparison is selective rather than exhaustive. The thesis compares Prophet, a deterministic LSTM, and a Bayesian LSTM, which is sufficient for a focused methodological study but not for a full ranking of forecasting approaches. As a result, the thesis can claim superiority only within the chosen benchmark set, not against the complete state of the art.
+
+Third, hyperparameter optimization was systematic but still constrained by computational cost. Although Optuna was used, the Bayesian model required several days of training per cross-validation cycle. This limited the number of architectural variants and probabilistic design choices that could be explored. The weak calibration results may therefore reflect not only a limitation of the current modelling approach, but also the restricted search space that could be evaluated in practice.
+
+Fourth, the probabilistic evaluation is informative but incomplete. PIT histograms are useful for diagnosing calibration, but they do not provide a comprehensive assessment of probabilistic forecast quality on their own. The thesis can therefore conclude that the Bayesian LSTM is not satisfactorily calibrated in its current form, but it cannot make a complete judgment about all aspects of uncertainty quality \cite{chenEvaluationProbabilisticElectricity2024}.
+
+Fifth, the explainability setup also has methodological limits. Grouped SHAP makes the analysis computationally tractable and semantically meaningful, but it suppresses information about which specific lags within the seven-day history are most influential. For Prophet, the SHAP analysis only covers explicit regressors and not the model's internal seasonal or trend components. In the Bayesian case, the reported SHAP intervals reflect variation across stochastic weight samples rather than classical statistical confidence intervals due to data sampling. These choices are justified for the present study, but they narrow what can be inferred from the explanation analysis.
+
+Finally, bias must be considered explicitly. In this application there are no direct demographic bias dimensions such as gender or ethnicity, because the data represent aggregated national electricity demand and weather rather than personal information. Nevertheless, bias is still present in temporal, geographic, and regime-specific forms. Spatial aggregation of weather data to a national mean may underrepresent regional extremes, especially in a geographically heterogeneous country such as Austria. Aggregate load data smooth over differences between households, industry, and local infrastructures. The simple holiday and weekday indicators encode only coarse social structure and may miss school holidays, bridge days, or behavioral changes. In addition, the observed weaknesses in summer, around midday, and on weekends suggest that the models may be biased toward more frequent or easier-to-learn operating conditions. In its current form, the thesis therefore provides a strong proof of concept, but not yet a fully general or deployment-ready solution.
+
+
+\section{Further Research}
+
+Several directions for further research follow directly from the findings of this thesis. First, the empirical scope should be broadened beyond the Austrian bidding zone and the day-ahead transmission-level setting. Future studies should test whether the observed importance of load history, calendar effects, and future weather covariates also holds for other countries, other market areas, and other forecasting horizons.
+
+Second, the benchmark should be extended. Since the present comparison does not cover the full range of competitive forecasting methods, future work should include additional approaches such as gradient-boosted trees, quantile regression models, Temporal Fusion Transformers, DeepAR, N-BEATS, and hybrid or ensemble models. This would allow the proposed approach to be positioned more clearly against the broader literature.
+
+Third, the probabilistic component requires further refinement. Since the Bayesian LSTM did not yield satisfactorily calibrated predictive distributions in its raw form, future work should investigate alternative priors, richer variational approximations, calibration-aware training objectives, and other probabilistic forecasting architectures. Post-hoc calibration methods should also be evaluated more systematically to determine whether calibration can be improved without undermining interpretability.
+
+Fourth, probabilistic evaluation should be expanded beyond PIT histograms. Additional metrics such as CRPS, prediction interval coverage, sharpness, and pinball loss would provide a more comprehensive picture of uncertainty quality and make it easier to distinguish between sharp but miscalibrated forecasts and well-calibrated but overly diffuse ones.
+
+Fifth, the explainability analysis could be refined further. The grouped SHAP framework used in this thesis improves tractability and interpretability, but future work could investigate lag-level or hierarchical attribution methods in order to identify more precisely which parts of the historical input sequence drive the forecast. It would also be valuable to compare SHAP with alternative explainability methods and to examine whether explanation uncertainty can be quantified for calibrated probabilistic outputs rather than only for the raw Bayesian model.
+
+Finally, future work should address regime-specific and spatial bias more directly. The reduced performance in summer, around midday, and on weekends suggests that the current models are less robust under certain operating conditions. This motivates robustness tests under extreme weather events, the use of more granular weather representations, and possibly more detailed load decompositions by sector or region. Such extensions would help determine whether the observed biases arise mainly from the model architecture, the available feature set, or the aggregation level of the data.
+
 % Hier können Sie Ihre KI-Tools dokumentieren. Diese werden automatisch in eine Tabelle integriert.
-\aitoolentry{DeepL Translate}{Translation of an article in English}{Source (XXX), Chapter X on page X-X}
-\aitoolentry{Chat GPT 4.0}{Grammar and Spelling}{"Please list issues with spelling and grammar in the following text: ...", Entire document}
+\aitoolentry{Chat GPT 5.4}{Grammar and Spelling}{Help me identify spelling and grammar in this document}
 
 %
 % Hier beginnen die Verzeichnisse.
